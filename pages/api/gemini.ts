@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from "next";
 
 const SYSTEM_PROMPT = `
 Sen InciLab adlı AI laboratuvar platformunun bilimsel asistanısın.
@@ -14,19 +14,24 @@ Görevlerin:
 - Cevapları düzenli başlıklarla ver.
 `;
 
-const MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+const MODELS = [
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
+  "gemini-3-flash-preview",
+  "gemini-flash-latest",
+];
 
 function extractText(data: any) {
   const parts = data?.candidates?.[0]?.content?.parts;
 
-  if (!Array.isArray(parts)) return '';
+  if (!Array.isArray(parts)) return "";
 
   return parts
     .map((part) => {
-      if (typeof part?.text === 'string') return part.text;
-      return '';
+      if (typeof part?.text === "string") return part.text;
+      return "";
     })
-    .join('')
+    .join("")
     .trim();
 }
 
@@ -37,21 +42,21 @@ async function askGemini(prompt: string) {
     return {
       ok: false,
       error:
-        'GEMINI_API_KEY bulunamadı. .env.local dosyası package.json ile aynı seviyede olmalı.',
+        "GEMINI_API_KEY bulunamadı. .env veya .env.local dosyası package.json ile aynı seviyede olmalı. Vercel'de de Environment Variables alanına eklenmeli.",
     };
   }
 
-  let lastError = '';
+  const errors: string[] = [];
 
   for (const model of MODELS) {
     try {
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': apiKey,
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey,
           },
           body: JSON.stringify({
             systemInstruction: {
@@ -59,14 +64,14 @@ async function askGemini(prompt: string) {
             },
             contents: [
               {
-                role: 'user',
+                role: "user",
                 parts: [{ text: prompt }],
               },
             ],
             generationConfig: {
               temperature: 0.65,
               topP: 0.9,
-              maxOutputTokens: 1800,
+              maxOutputTokens: 2200,
             },
           }),
         }
@@ -75,16 +80,18 @@ async function askGemini(prompt: string) {
       const data = await response.json();
 
       if (!response.ok) {
-        lastError =
+        const message =
           data?.error?.message ||
           `Gemini isteği başarısız oldu. Model: ${model}`;
+
+        errors.push(`${model}: ${message}`);
         continue;
       }
 
       const text = extractText(data);
 
       if (!text) {
-        lastError = `Gemini boş cevap döndürdü. Model: ${model}`;
+        errors.push(`${model}: Gemini boş cevap döndürdü.`);
         continue;
       }
 
@@ -94,52 +101,58 @@ async function askGemini(prompt: string) {
         text,
       };
     } catch (error: any) {
-      lastError = error?.message || 'Bilinmeyen Gemini bağlantı hatası.';
+      errors.push(`${model}: ${error?.message || "Bilinmeyen bağlantı hatası."}`);
     }
   }
 
   return {
     ok: false,
-    error: lastError || 'Gemini modellerinden cevap alınamadı.',
+    error:
+      "Gemini modellerinden cevap alınamadı. Detay: " + errors.join(" | "),
   };
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method === 'GET') {
-    const test = String(req.query.test || '').trim();
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    if (req.method === "GET") {
+      const test = String(req.query.test || "").trim();
 
-    if (!test) {
-      return res.status(200).json({
-        ok: true,
-        route: '/api/gemini',
-        hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
-        message: 'Test için /api/gemini?test=merhaba yaz.',
-      });
+      if (!test) {
+        return res.status(200).json({
+          ok: true,
+          route: "/api/gemini",
+          hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+          models: MODELS,
+          message: "Test için /api/gemini?test=merhaba yaz.",
+        });
+      }
+
+      const result = await askGemini(test);
+      return res.status(result.ok ? 200 : 500).json(result);
     }
 
-    const result = await askGemini(test);
-    return res.status(result.ok ? 200 : 500).json(result);
-  }
+    if (req.method === "POST") {
+      const message = String(req.body?.message || "").trim();
 
-  if (req.method === 'POST') {
-    const message = String(req.body?.message || '').trim();
+      if (!message) {
+        return res.status(400).json({
+          ok: false,
+          error: "Mesaj boş geldi.",
+        });
+      }
 
-    if (!message) {
-      return res.status(400).json({
-        ok: false,
-        error: 'Mesaj boş geldi.',
-      });
+      const result = await askGemini(message);
+      return res.status(result.ok ? 200 : 500).json(result);
     }
 
-    const result = await askGemini(message);
-    return res.status(result.ok ? 200 : 500).json(result);
+    return res.status(405).json({
+      ok: false,
+      error: "Sadece GET ve POST destekleniyor.",
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      ok: false,
+      error: error?.message || "Beklenmeyen sunucu hatası oluştu.",
+    });
   }
-
-  return res.status(405).json({
-    ok: false,
-    error: 'Sadece GET ve POST destekleniyor.',
-  });
 }
