@@ -110,6 +110,51 @@ const buildLocalReport = (question: string, answer: string): AnalysisReport => {
   };
 };
 
+const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
+  let binary = "";
+  const bytes = new Uint8Array(buffer);
+  const chunkSize = 0x8000;
+
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode.apply(null, Array.from(chunk));
+  }
+
+  return btoa(binary);
+};
+
+const fetchFontAsBase64 = async (url: string) => {
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Font indirilemedi.");
+  }
+
+  const buffer = await response.arrayBuffer();
+  return arrayBufferToBase64(buffer);
+};
+
+const registerTurkishPdfFont = async (doc: any) => {
+  const regularFontUrl =
+    "https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/hinted/ttf/NotoSans/NotoSans-Regular.ttf";
+
+  const boldFontUrl =
+    "https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/hinted/ttf/NotoSans/NotoSans-Bold.ttf";
+
+  const [regularBase64, boldBase64] = await Promise.all([
+    fetchFontAsBase64(regularFontUrl),
+    fetchFontAsBase64(boldFontUrl),
+  ]);
+
+  doc.addFileToVFS("NotoSans-Regular.ttf", regularBase64);
+  doc.addFont("NotoSans-Regular.ttf", "NotoSans", "normal");
+
+  doc.addFileToVFS("NotoSans-Bold.ttf", boldBase64);
+  doc.addFont("NotoSans-Bold.ttf", "NotoSans", "bold");
+
+  return "NotoSans";
+};
+
 export default function InciLabPage() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -232,52 +277,88 @@ ${cleanQuestion}
     }
 
     try {
+      showToast("PDF hazırlanıyor...");
+
       const { jsPDF } = await import("jspdf");
 
       const doc = new jsPDF({
         orientation: "p",
         unit: "mm",
         format: "a4",
+        compress: true,
       });
 
-      const margin = 14;
+      let pdfFont = "helvetica";
+
+      try {
+        pdfFont = await registerTurkishPdfFont(doc);
+      } catch {
+        pdfFont = "helvetica";
+      }
+
       const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+
+      const margin = 16;
       const maxWidth = pageWidth - margin * 2;
       let y = 18;
 
+      const setTextColor = (type: "dark" | "muted" | "soft" = "dark") => {
+        if (type === "dark") doc.setTextColor(15, 23, 42);
+        if (type === "muted") doc.setTextColor(71, 85, 105);
+        if (type === "soft") doc.setTextColor(100, 116, 139);
+      };
+
+      const addPageBackground = () => {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(0, 0, pageWidth, pageHeight, "F");
+
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(9, 9, pageWidth - 18, pageHeight - 18, 5, 5, "F");
+
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.2);
+        doc.roundedRect(9, 9, pageWidth - 18, pageHeight - 18, 5, 5, "S");
+      };
+
       const checkPage = (space = 20) => {
-        if (y + space > 282) {
+        if (y + space > pageHeight - 18) {
           doc.addPage();
+          addPageBackground();
           y = 18;
         }
       };
 
       const addTitle = (text: string) => {
-        checkPage(14);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(17);
-        doc.text(text, margin, y);
-        y += 10;
-      };
+        checkPage(18);
 
-      const addMeta = (text: string) => {
-        checkPage(10);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
+        doc.setFont(pdfFont, "bold");
+        doc.setFontSize(18);
+        setTextColor("dark");
         doc.text(text, margin, y);
+
+        y += 8;
+
+        doc.setDrawColor(203, 213, 225);
+        doc.setLineWidth(0.3);
+        doc.line(margin, y, pageWidth - margin, y);
+
         y += 8;
       };
 
-      const addSection = (title: string, content: string | string[]) => {
-        checkPage(20);
+      const addMeta = (text: string) => {
+        checkPage(8);
 
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
-        doc.text(title, margin, y);
+        doc.setFont(pdfFont, "normal");
+        doc.setFontSize(9);
+        setTextColor("soft");
+        doc.text(text, margin, y);
+
         y += 7;
+      };
 
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
+      const addSection = (title: string, content: string | string[]) => {
+        checkPage(24);
 
         const finalText = Array.isArray(content)
           ? content.length
@@ -285,21 +366,62 @@ ${cleanQuestion}
             : "Bilgi yok."
           : content || "Bilgi yok.";
 
+        doc.setFillColor(248, 250, 252);
+        doc.setDrawColor(226, 232, 240);
+        doc.roundedRect(margin - 2, y - 5, maxWidth + 4, 9, 2, 2, "FD");
+
+        doc.setFont(pdfFont, "bold");
+        doc.setFontSize(11);
+        setTextColor("dark");
+        doc.text(title, margin, y);
+
+        y += 8;
+
+        doc.setFont(pdfFont, "normal");
+        doc.setFontSize(10.2);
+        setTextColor("muted");
+        doc.setLineHeightFactor(1.35);
+
         const lines = doc.splitTextToSize(finalText, maxWidth) as string[];
 
         lines.forEach((line) => {
-          checkPage(6);
+          checkPage(7);
           doc.text(line, margin, y);
-          y += 5;
+          y += 5.7;
         });
 
-        y += 4;
+        y += 5;
+      };
+
+      const addFooter = () => {
+        const pageCount = doc.getNumberOfPages();
+
+        for (let i = 1; i <= pageCount; i += 1) {
+          doc.setPage(i);
+          doc.setFont(pdfFont, "normal");
+          doc.setFontSize(8);
+          setTextColor("soft");
+
+          doc.text("InciLab Analiz Raporu", margin, pageHeight - 9);
+          doc.text(
+            `${i} / ${pageCount}`,
+            pageWidth - margin,
+            pageHeight - 9,
+            { align: "right" }
+          );
+        }
       };
 
       const today = new Date().toISOString().slice(0, 10);
 
+      addPageBackground();
+
       addTitle("InciLab Analiz Raporu");
       addMeta(`Oluşturulma tarihi: ${report.createdAt}`);
+      addMeta("Kimya · Kozmetik · Laboratuvar Analiz Asistanı");
+
+      y += 3;
+
       addSection("Kullanıcının Sorusu", report.question);
       addSection("Analiz Cevabı", report.answer);
       addSection("Detaylı Açıklama", report.details);
@@ -307,10 +429,12 @@ ${cleanQuestion}
       addSection("Çözüm Önerileri", report.suggestions);
       addSection("Notlar / Uyarılar", report.notes);
 
+      addFooter();
+
       doc.save(`incilab-analiz-raporu-${today}.pdf`);
       showToast("PDF indiriliyor.");
     } catch {
-      showToast("PDF için jspdf paketi eksik olabilir.");
+      showToast("PDF oluşturulamadı. Font veya jsPDF bağlantısı kontrol edilmeli.");
     }
   };
 
