@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 
 type AnalysisReport = {
   question: string;
@@ -73,16 +74,16 @@ const formulaCards = [
   },
 ];
 
-function splitToList(text: string, fallback: string[]) {
+const splitToList = (text: string, fallback: string[]) => {
   const lines = text
     .split(/\n|•|-|\d+\./)
     .map((item) => item.trim())
     .filter((item) => item.length > 8);
 
   return lines.length >= 3 ? lines.slice(0, 6) : fallback;
-}
+};
 
-function buildLocalReport(question: string, answer: string): AnalysisReport {
+const buildLocalReport = (question: string, answer: string): AnalysisReport => {
   return {
     question,
     answer,
@@ -107,7 +108,7 @@ function buildLocalReport(question: string, answer: string): AnalysisReport {
     ],
     createdAt: new Date().toLocaleString("tr-TR"),
   };
-}
+};
 
 export default function InciLabPage() {
   const [question, setQuestion] = useState("");
@@ -135,12 +136,12 @@ export default function InciLabPage() {
       : report.answer;
   }, [report]);
 
-  function showToast(message: string) {
+  const showToast = (message: string) => {
     setToast(message);
     window.setTimeout(() => setToast(""), 2600);
-  }
+  };
 
-  async function askInciLab() {
+  const askInciLab = async () => {
     const cleanQuestion = question.trim();
 
     if (!cleanQuestion) {
@@ -160,6 +161,7 @@ Cevabında şu düzeni koru:
 3. Kontrol edilmesi gerekenler
 4. Çözüm önerileri
 5. Dikkat notu
+
 Kullanıcının sorusu:
 ${cleanQuestion}
 `;
@@ -209,7 +211,7 @@ ${cleanQuestion}
       setReport(newReport);
       setHistory((prev) => [newReport, ...prev]);
       showToast("Analiz cevabı hazır.");
-    } catch (error) {
+    } catch {
       const errorReport = buildLocalReport(
         cleanQuestion,
         "Bağlantı hatası oluştu. /api/gemini route, environment key veya response formatı kontrol edilmeli."
@@ -221,9 +223,9 @@ ${cleanQuestion}
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  async function exportPDF() {
+  const exportPDF = async () => {
     if (!report) {
       showToast("PDF için önce analiz cevabı oluşturmalısın.");
       return;
@@ -243,30 +245,30 @@ ${cleanQuestion}
       const maxWidth = pageWidth - margin * 2;
       let y = 18;
 
-      function checkPage(space = 20) {
+      const checkPage = (space = 20) => {
         if (y + space > 282) {
           doc.addPage();
           y = 18;
         }
-      }
+      };
 
-      function addTitle(text: string) {
+      const addTitle = (text: string) => {
         checkPage(14);
         doc.setFont("helvetica", "bold");
         doc.setFontSize(17);
         doc.text(text, margin, y);
         y += 10;
-      }
+      };
 
-      function addMeta(text: string) {
+      const addMeta = (text: string) => {
         checkPage(10);
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
         doc.text(text, margin, y);
         y += 8;
-      }
+      };
 
-      function addSection(title: string, content: string | string[]) {
+      const addSection = (title: string, content: string | string[]) => {
         checkPage(20);
 
         doc.setFont("helvetica", "bold");
@@ -283,16 +285,16 @@ ${cleanQuestion}
             : "Bilgi yok."
           : content || "Bilgi yok.";
 
-        const lines = doc.splitTextToSize(finalText, maxWidth);
+        const lines = doc.splitTextToSize(finalText, maxWidth) as string[];
 
-        lines.forEach((line: string) => {
+        lines.forEach((line) => {
           checkPage(6);
           doc.text(line, margin, y);
           y += 5;
         });
 
         y += 4;
-      }
+      };
 
       const today = new Date().toISOString().slice(0, 10);
 
@@ -307,10 +309,10 @@ ${cleanQuestion}
 
       doc.save(`incilab-analiz-raporu-${today}.pdf`);
       showToast("PDF indiriliyor.");
-    } catch (error) {
+    } catch {
       showToast("PDF için jspdf paketi eksik olabilir.");
     }
-  }
+  };
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#ffffff,#eef1f5_45%,#dfe5ec)] px-4 py-6 text-slate-900">
@@ -621,7 +623,7 @@ function PanelCard({
   title: string;
   buttonText: string;
   onButtonClick: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <section className="rounded-[2rem] border border-white/70 bg-white/75 p-5 shadow-xl shadow-slate-200/70 backdrop-blur">
