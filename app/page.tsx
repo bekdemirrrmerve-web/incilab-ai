@@ -1,832 +1,924 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { ReactNode } from "react";
 
-type AnalysisReport = {
-  question: string;
-  answer: string;
-  details: string;
-  causes: string[];
-  suggestions: string[];
-  notes: string[];
-  createdAt: string;
-};
+type Mode = "analysis" | "formula";
 
-const samplePrompts = [
-  "KOİ yüksek, çıkış suyu bulanık. Neden olabilir?",
-  "Toplam azot ve nitrat sonucu uyumsuz çıkıyor. Nasıl yorumlanır?",
-  "Bir şampuan formülünde SLES yerine daha yumuşak alternatif ne kullanılabilir?",
-  "Krem formülünde pH neden zamanla yükselir?",
-];
-
-const ingredientCards = [
-  {
-    title: "Niacinamide",
-    desc: "Cilt bariyeri, ton eşitsizliği ve sebum dengesi için popüler aktif.",
-    detail:
-      "Genellikle %2-5 aralığında kullanılır. Çok düşük pH sistemlerde stabilite ve tolerans açısından dikkatli değerlendirilmelidir.",
-  },
-  {
-    title: "Panthenol",
-    desc: "Yatıştırıcı, nem destekleyici ve bariyer dostu yardımcı aktif.",
-    detail:
-      "Leave-on ve rinse-off ürünlerde kullanılabilir. Hassas cilt ürünlerinde iyi bir destek hammaddesidir.",
-  },
-  {
-    title: "Azelaic Acid",
-    desc: "Leke, kızarıklık ve akne eğilimli ciltlerde kullanılan güçlü aktif.",
-    detail:
-      "Formülasyon pH’ı, çözünürlük ve partikül dağılımı kritik olabilir. Ev tipi kullanımda dikkatli olunmalıdır.",
-  },
-  {
-    title: "PHA",
-    desc: "AHA’ya göre daha nazik eksfoliasyon sağlayabilen asit grubu.",
-    detail:
-      "Gluconolactone gibi PHA’lar hassas cilt iletişiminde daha soft bir seçenek olarak anlatılabilir.",
-  },
-];
-
-const formulaCards = [
-  {
-    title: "Nemlendirici krem bazı",
-    desc: "Su fazı + yağ fazı + emülgatör + koruyucu + pH ayarı mantığı.",
-    detail:
-      "Basit bir kremde su fazı, humektanlar, yağ fazı, emülgatör sistemi, kıvam verici, koruyucu ve pH ayarı ayrı ayrı kontrol edilmelidir.",
-  },
-  {
-    title: "Nazik temizleyici jel",
-    desc: "Anyonik + amfoterik + noniyonik yüzey aktif kombinasyonu.",
-    detail:
-      "Cilt dostu temizleyicilerde aktif madde yüzdesi, pH, viskozite ve irritasyon potansiyeli birlikte değerlendirilmelidir.",
-  },
-  {
-    title: "Tonik / mist",
-    desc: "Düşük yağlı, su bazlı, aktif destekli hafif ürün mantığı.",
-    detail:
-      "Toniklerde çözünürlük, koruyucu uyumu, pH ve ambalaj hijyeni çok önemlidir.",
-  },
-  {
-    title: "Saç bakım serumu",
-    desc: "Silikon, ester yağlar veya bitkisel yağlarla tasarlanabilir.",
-    detail:
-      "Saç serumlarında ağırlık hissi, parlaklık, kayganlık ve uçlardaki görünüm hedeflenir.",
-  },
-];
-
-const splitToList = (text: string, fallback: string[]) => {
-  const lines = text
-    .split(/\n|•|-|\d+\./)
-    .map((item) => item.trim())
-    .filter((item) => item.length > 8);
-
-  return lines.length >= 3 ? lines.slice(0, 6) : fallback;
-};
-
-const buildLocalReport = (question: string, answer: string): AnalysisReport => {
-  return {
-    question,
-    answer,
-    details:
-      answer ||
-      "Analiz cevabı oluşturuldu ancak detay metni ayrı gelmedi. Ana cevap üzerinden kimyasal değerlendirme yapılabilir.",
-    causes: splitToList(answer, [
-      "Numune matriksi değişmiş olabilir.",
-      "Seyreltme katsayısı veya ölçüm aralığı hatalı seçilmiş olabilir.",
-      "Kitin bekleme süresi, sıcaklığı veya reaktif sırası sonucu etkilemiş olabilir.",
-      "Cihaz kalibrasyonu, blank değeri veya küvet temizliği kontrol edilmelidir.",
-    ]),
-    suggestions: [
-      "Aynı numuneyi uygun seyreltme ile tekrar çalış.",
-      "Kitin ölçüm aralığını ve cihaz metodunu kontrol et.",
-      "Blank, küvet temizliği ve reaktif son kullanma tarihini kontrol et.",
-      "Şüpheli sonuçlarda paralel numune veya farklı seyreltme ile doğrulama yap.",
-    ],
-    notes: [
-      "Bu yorum laboratuvar ön değerlendirmesidir; resmi rapor yerine geçmez.",
-      "Sonuçlar numune alma zamanı, bekletme koşulu ve metoda göre değişebilir.",
-    ],
-    createdAt: new Date().toLocaleString("tr-TR"),
-  };
-};
-
-const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
-  let binary = "";
-  const bytes = new Uint8Array(buffer);
-  const chunkSize = 0x8000;
-
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    const chunk = bytes.subarray(i, i + chunkSize);
-    binary += String.fromCharCode.apply(null, Array.from(chunk));
-  }
-
-  return btoa(binary);
-};
-
-const fetchFontAsBase64 = async (url: string) => {
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("Font indirilemedi.");
-  }
-
-  const buffer = await response.arrayBuffer();
-  return arrayBufferToBase64(buffer);
-};
-
-const registerTurkishPdfFont = async (doc: any) => {
-  const regularFontUrl =
-    "https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/hinted/ttf/NotoSans/NotoSans-Regular.ttf";
-
-  const boldFontUrl =
-    "https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/hinted/ttf/NotoSans/NotoSans-Bold.ttf";
-
-  const [regularBase64, boldBase64] = await Promise.all([
-    fetchFontAsBase64(regularFontUrl),
-    fetchFontAsBase64(boldFontUrl),
-  ]);
-
-  doc.addFileToVFS("NotoSans-Regular.ttf", regularBase64);
-  doc.addFont("NotoSans-Regular.ttf", "NotoSans", "normal");
-
-  doc.addFileToVFS("NotoSans-Bold.ttf", boldBase64);
-  doc.addFont("NotoSans-Bold.ttf", "NotoSans", "bold");
-
-  return "NotoSans";
-};
-
-export default function InciLabPage() {
+export default function Home() {
+  const [mode, setMode] = useState<Mode>("analysis");
   const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
-  const [report, setReport] = useState<AnalysisReport | null>(null);
-  const [history, setHistory] = useState<AnalysisReport[]>([]);
-  const [showDetails, setShowDetails] = useState(false);
-  const [showAllIngredients, setShowAllIngredients] = useState(false);
-  const [showAllFormulas, setShowAllFormulas] = useState(false);
-  const [showAllHistory, setShowAllHistory] = useState(false);
-  const [toast, setToast] = useState("");
+  const [showAllTrends, setShowAllTrends] = useState(false);
+  const [showFormulaPanel, setShowFormulaPanel] = useState(true);
 
-  const visibleIngredients = showAllIngredients
-    ? ingredientCards
-    : ingredientCards.slice(0, 2);
+  const exampleQuestions = useMemo(
+    () => [
+      "Çıkış suyunda KOİ yüksek ama numune berrak değil. Kit ile ölçüm yaptım, neden olabilir?",
+      "Toplam azot ve nitrat sonucu uyumsuz çıkıyor. Nasıl yorumlanır?",
+      "Krem formülünde pH neden zamanla yükselir?",
+      "Amonyum yüksek, nitrit düşük, nitrat yüksekse proses ne anlatır?",
+    ],
+    []
+  );
 
-  const visibleFormulas = showAllFormulas ? formulaCards : formulaCards.slice(0, 2);
+  const exampleFormulas = useMemo(
+    () => [
+      "100 g nemlendirici krem bazı formülü hazırla.",
+      "SLES yerine daha nazik temizleyici alternatifleriyle jel formül yaz.",
+      "Yağlı cilt için niacinamide içeren serum formülü hazırla.",
+      "Panthenol ve allantoin içeren bariyer destekleyici krem formülü yaz.",
+    ],
+    []
+  );
 
-  const visibleHistory = showAllHistory ? history : history.slice(0, 2);
+  const trends = [
+    {
+      name: "Niacinamide",
+      desc: "Sebum dengesi, ton eşitsizliği ve bariyer desteği için popüler aktif.",
+      detail:
+        "Genelde %2-5 aralığında kullanılır. Çok düşük pH sistemlerde stabilite ve tolerans kontrolü gerekir.",
+    },
+    {
+      name: "Panthenol",
+      desc: "Yatıştırıcı, nem destekleyici ve bariyer dostu yardımcı aktif.",
+      detail:
+        "Krem, serum, tonik ve saç bakım formüllerinde kullanılabilir. Hassas cilt ürünlerinde iyi konumlanır.",
+    },
+    {
+      name: "Allantoin",
+      desc: "Yatıştırıcı ve cilt konforunu artıran destekleyici hammadde.",
+      detail:
+        "Genelde düşük oranlarda kullanılır. Çözünürlük ve sıcaklık kontrolü önemlidir.",
+    },
+    {
+      name: "Betaine",
+      desc: "Nem desteği ve daha konforlu his için kullanılan yardımcı bileşen.",
+      detail:
+        "Temizleyici ve bakım ürünlerinde formül hissini yumuşatmak için değerlidir.",
+    },
+  ];
 
-  const reportPreview = useMemo(() => {
-    if (!report?.answer) return "";
-    return report.answer.length > 420
-      ? `${report.answer.slice(0, 420)}...`
-      : report.answer;
-  }, [report]);
+  const localAnalysisAnswer = (text: string) => {
+    const q = text.toLowerCase();
 
-  const showToast = (message: string) => {
-    setToast(message);
-    window.setTimeout(() => setToast(""), 2600);
-  };
+    if (q.includes("koi") || q.includes("koİ") || q.includes("cod")) {
+      return `### KOİ yüksek görünüyorsa olası nedenler
 
-  const askInciLab = async () => {
-    const cleanQuestion = question.trim();
+KOİ yani Kimyasal Oksijen İhtiyacı, sudaki oksitlenebilir organik yükü gösterir. Çıkış suyu berrak değilse veya kit ile ölçüm yapılıyorsa sonuç birkaç sebeple yüksek çıkabilir.
 
-    if (!cleanQuestion) {
-      showToast("Önce sorunu yaz kanka.");
-      return;
+**Olası nedenler:**
+- Numunede askıda katı madde veya bulanıklık varsa kit sonucu olduğundan yüksek etkilenebilir.
+- Seyreltme doğru yapılmadıysa sonuç direkt sapar.
+- Reaktif, tüp veya pipet kontaminasyonu olabilir.
+- Numune iyi homojenize edilmemiş olabilir.
+- Arıtma prosesinde organik yük tam parçalanmamış olabilir.
+- Çıkış suyu berrak değilse filtrasyon/çöktürme performansı zayıflamış olabilir.
+
+**Ben olsam önce şunları kontrol ederdim:**
+1. Aynı numuneyi bir kez süzerek, bir kez süzmeden ölçerdim.
+2. Kör numune ve standart kontrol çalışırdım.
+3. Seyreltme katsayısını tekrar hesaplardım.
+4. Giriş-çıkış KOİ giderim yüzdesine bakardım.
+5. Havalandırma, çamur yaşı ve çökelme performansını birlikte değerlendirirdim.
+
+**Yorum:**  
+KOİ çıkışta tamamen sıfır olmak zorunda değildir. Ama çıkış standardına göre yüksekse ya ölçüm kaynaklı sapma vardır ya da proses organik yükü yeterince düşüremiyordur.`;
     }
 
-    setLoading(true);
+    if (
+      q.includes("toplam azot") ||
+      q.includes("nitrat") ||
+      q.includes("tn") ||
+      q.includes("azot")
+    ) {
+      return `### Toplam azot - nitrat uyumsuzluğu nasıl yorumlanır?
 
+Normal mantıkta **Toplam Azot**, numunedeki farklı azot türlerinin toplamını temsil eder. Bu yüzden nitrat azotu, toplam azottan yüksek görünüyorsa burada teknik bir uyumsuzluk düşünülür.
+
+**Olası nedenler:**
+- Nitrat sonucu NO₃ olarak, toplam azot sonucu N olarak raporlanıyor olabilir.
+- Seyreltme katsayısı yanlış uygulanmış olabilir.
+- Kit aralığı aşılmış olabilir.
+- Cihazda yanlış metot seçilmiş olabilir.
+- Numune farklı saatlerden veya farklı karışım seviyelerinden alınmış olabilir.
+- Reaktif, küvet veya blank kaynaklı hata olabilir.
+
+**Önemli ayrım:**  
+Nitrat bazen **NO₃⁻ olarak**, bazen **NO₃-N olarak** verilir. Bu ikisi aynı şey değildir.
+
+Yaklaşık dönüşüm mantığı:
+- NO₃-N = NO₃ × 14 / 62
+- NO₃ = NO₃-N × 62 / 14
+
+**Benim net yorumum:**  
+Toplam azot 160 iken nitrat 548 gibi görünüyorsa önce birim ve raporlama formatı kontrol edilmeli. Büyük ihtimalle biri “azot cinsinden”, diğeri “nitrat iyonu cinsinden” okunuyor olabilir.`;
+    }
+
+    if (q.includes("ph") || q.includes("pH".toLowerCase())) {
+      return `### pH zamanla neden değişebilir?
+
+Bir formülde veya su numunesinde pH zamanla değişiyorsa bu genelde sistemin hâlâ kimyasal olarak oturmadığını gösterir.
+
+**Olası nedenler:**
+- Koruyucu sistem veya aktif madde pH'ı etkiliyor olabilir.
+- Emülgatör sistemi zamanla dengeye geliyor olabilir.
+- CO₂ kaybı veya hava teması pH'ı değiştirebilir.
+- Numunede mikrobiyal aktivite varsa pH değişebilir.
+- Tam çözünmeyen hammaddeler zamanla çözünüp pH'ı kaydırabilir.
+- pH probu kalibrasyonu hatalı olabilir.
+
+**Kontrol önerisi:**
+- pH’ı üretimden hemen sonra, 24 saat sonra ve 7 gün sonra ölç.
+- 25°C civarında ölçüm yap.
+- Prob kalibrasyonunu pH 4 ve pH 7 tamponlarıyla doğrula.
+- Formül kozmetikse hedef pH’ı cilt toleransına göre belirle.
+
+**Ben olsam:**  
+Tek ölçüme güvenmezdim. pH stabilitesi için küçük bir takip tablosu yapardım.`;
+    }
+
+    return `### Genel analiz yorumu
+
+Bu soruda net yorum yapabilmek için parametreleri birlikte okumak gerekir. Tek bir değere bakıp “kesin sorun bu” demek yanıltıcı olabilir.
+
+**Kontrol edilmesi gerekenler:**
+- Numune alma saati ve numunenin temsil gücü
+- Seyreltme katsayısı
+- Kitin ölçüm aralığı
+- Blank/kör numune sonucu
+- Cihazda seçilen metot
+- Giriş ve çıkış değerlerinin aynı gün/saat karşılaştırması
+- Numunenin bulanıklığı, rengi ve askıda katı madde durumu
+
+**Pratik yorum:**  
+Eğer sonuç beklenenden çok farklıysa önce ölçüm kaynaklı hataları elemek en doğru adım olur. Ölçüm doğruysa proses tarafında yük artışı, yetersiz havalandırma, çökelme problemi veya biyolojik aktivite zayıflığı düşünülür.`;
+  };
+
+  const localFormulaAnswer = (text: string) => {
+    const q = text.toLowerCase();
+
+    if (q.includes("temizleyici") || q.includes("sles") || q.includes("jel")) {
+      return `### Nazik temizleyici jel örnek formül - 100 g
+
+Bu formül SLES yerine daha yumuşak yüzey aktiflerle hazırlanmış temel bir jel temizleyici mantığıdır.
+
+| Faz | Hammadde | Oran |
+|---|---:|---:|
+| A | Distile su | %62.00 |
+| A | Glycerin | %4.00 |
+| A | Disodium EDTA | %0.10 |
+| B | Cocamidopropyl Betaine | %10.00 |
+| B | Decyl Glucoside | %8.00 |
+| B | Sodium Cocoyl Glutamate | %6.00 |
+| C | Panthenol | %1.00 |
+| C | Allantoin | %0.20 |
+| C | Koruyucu | %1.00 |
+| C | Kıvam ayarı / tuz veya uygun polimer | %0.50 - %1.20 |
+| C | pH ayarı | q.s. |
+|  | Toplam | %100 |
+
+**Hedef pH:** 5.2 - 5.8
+
+**Üretim mantığı:**
+1. Su fazında glycerin ve EDTA çözündürülür.
+2. Yüzey aktifler köpürtmeden yavaşça eklenir.
+3. Panthenol ve allantoin uygun sıcaklıkta eklenir.
+4. Koruyucu eklenir.
+5. pH sitrik asit veya laktik asit ile ayarlanır.
+6. Kıvam son aşamada kontrollü yükseltilir.
+
+**Not:**  
+Glucoside bazlı sistemlerde pH ayarı sonrası kıvam değişebilir. O yüzden pH’tan önce son kıvam kararını verme kanka.`;
+    }
+
+    if (
+      q.includes("serum") ||
+      q.includes("niacinamide") ||
+      q.includes("yağlı")
+    ) {
+      return `### Yağlı cilt için niacinamide serum örneği - 100 g
+
+| Faz | Hammadde | Oran |
+|---|---:|---:|
+| A | Distile su | %78.20 |
+| A | Glycerin | %3.00 |
+| A | Propanediol | %5.00 |
+| A | Niacinamide | %4.00 |
+| A | Zinc PCA | %0.50 |
+| B | Panthenol | %1.00 |
+| B | Hyaluronic Acid çözeltisi | %5.00 |
+| B | Koruyucu | %1.00 |
+| B | Kıvam verici | %0.30 |
+| B | pH ayarı | q.s. |
+|  | Toplam | %100 |
+
+**Hedef pH:** 5.5 - 6.2
+
+**Formül yorumu:**  
+Niacinamide çok asidik sistemleri sevmez. Bu yüzden pH’ı 5’in altına sert düşürmemek daha mantıklı olur.
+
+**Üretim mantığı:**
+1. Su, glycerin ve propanediol karıştırılır.
+2. Niacinamide tamamen çözündürülür.
+3. Zinc PCA eklenir.
+4. Kıvam verici ayrı disperse edilip sisteme alınır.
+5. Panthenol, HA çözeltisi ve koruyucu eklenir.
+6. pH son kontrolde ayarlanır.
+
+**Ben olsam:**  
+Bu formülü “parlama karşıtı ama bariyeri bozmayan serum” diye konumlandırırdım. İçerik anlatımı da çok güzel çıkar.`;
+    }
+
+    return `### Nemlendirici krem bazı örnek formül - 100 g
+
+| Faz | Hammadde | Oran |
+|---|---:|---:|
+| A | Distile su | %69.30 |
+| A | Glycerin | %4.00 |
+| A | Disodium EDTA | %0.10 |
+| B | Caprylic/Capric Triglyceride | %7.00 |
+| B | Cetearyl Alcohol | %3.00 |
+| B | Glyceryl Stearate Citrate | %3.00 |
+| B | Shea Butter | %4.00 |
+| C | Panthenol | %1.50 |
+| C | Allantoin | %0.20 |
+| C | Koruyucu | %1.00 |
+| C | Parfüm / esans | %0.20 |
+| C | pH ayarı | q.s. |
+|  | Toplam | %100 |
+
+**Hedef pH:** 5.2 - 5.8
+
+**Üretim adımları:**
+1. A fazı ve B fazı ayrı ayrı yaklaşık 70-75°C’ye ısıtılır.
+2. B fazı A fazına yavaşça eklenir ve homojenize edilir.
+3. Karışım soğurken düşük devirde karıştırmaya devam edilir.
+4. 40°C altına düşünce C fazı eklenir.
+5. pH ölçülür ve gerekirse ayarlanır.
+6. 24 saat sonra viskozite ve pH tekrar kontrol edilir.
+
+**Dikkat:**  
+Bu örnek eğitim ve AR-GE başlangıç formülüdür. Piyasaya ürün çıkarmadan önce stabilite, mikrobiyoloji, challenge test ve mevzuat uygunluğu gerekir.`;
+  };
+
+  const askGemini = async (text: string, currentMode: Mode) => {
     try {
-      const systemPrompt = `
-Sen InciLab adlı kimya, kozmetik formülasyon ve laboratuvar analiz asistanısın.
-Kullanıcıya Türkçe, anlaşılır ama bilimsel cevap ver.
-Cevabında şu düzeni koru:
-1. Kısa yorum
-2. Muhtemel nedenler
-3. Kontrol edilmesi gerekenler
-4. Çözüm önerileri
-5. Dikkat notu
-
-Kullanıcının sorusu:
-${cleanQuestion}
-`;
-
-      const response = await fetch("/api/gemini", {
+      const res = await fetch("/api/gemini", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: systemPrompt,
-          prompt: systemPrompt,
-          question: cleanQuestion,
+          message: text,
+          prompt: text,
+          question: text,
+          mode: currentMode,
+          system:
+            currentMode === "formula"
+              ? "Sen InciLab kozmetik formülasyon asistanısın. Türkçe, anlaşılır, bilimsel ve uygulanabilir formülasyon cevabı ver."
+              : "Sen InciLab kimya, kozmetik ve analiz asistanısın. Türkçe, anlaşılır, bilimsel ve uygulanabilir analiz yorumu ver.",
         }),
       });
 
-      const data = await response.json().catch(() => null);
+      if (!res.ok) return "";
 
-      const aiAnswer =
-        data?.answer ||
-        data?.reply ||
-        data?.text ||
-        data?.result ||
-        data?.content ||
-        data?.message ||
-        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "";
+      const data = await res.json();
 
-      if (!response.ok || !aiAnswer) {
-        const fallbackMessage =
-          data?.error ||
-          "Cevabı alamadım kanka. Gemini route çalışıyor olabilir ama dönen cevap alanı farklı isimde olabilir.";
-
-        const fallbackReport = buildLocalReport(
-          cleanQuestion,
-          `Analiz cevabı alınamadı.\n\nTeknik detay: ${fallbackMessage}`
-        );
-
-        setReport(fallbackReport);
-        setHistory((prev) => [fallbackReport, ...prev]);
-        showToast("Cevap geldi ama teknik uyarı var.");
-        return;
-      }
-
-      const newReport = buildLocalReport(cleanQuestion, aiAnswer);
-
-      setReport(newReport);
-      setHistory((prev) => [newReport, ...prev]);
-      showToast("Analiz cevabı hazır.");
-    } catch {
-      const errorReport = buildLocalReport(
-        cleanQuestion,
-        "Bağlantı hatası oluştu. /api/gemini route, environment key veya response formatı kontrol edilmeli."
+      return (
+        data.answer ||
+        data.reply ||
+        data.text ||
+        data.result ||
+        data.message ||
+        ""
       );
-
-      setReport(errorReport);
-      setHistory((prev) => [errorReport, ...prev]);
-      showToast("Bağlantı hatası oluştu.");
-    } finally {
-      setLoading(false);
+    } catch {
+      return "";
     }
   };
 
-  const exportPDF = async () => {
-    if (!report) {
-      showToast("PDF için önce analiz cevabı oluşturmalısın.");
+  const handleAnalyze = async () => {
+    const text = question.trim();
+    if (!text) {
+      setAnswer("Önce bir soru yaz kanka. Analiz veya formül sorusunu buraya bırak, ben toparlayayım.");
       return;
     }
 
-    try {
-      showToast("PDF hazırlanıyor...");
+    setLoading(true);
+    setAnswer("");
 
-      const { jsPDF } = await import("jspdf");
+    const aiAnswer = await askGemini(text, mode);
 
-      const doc = new jsPDF({
-        orientation: "p",
-        unit: "mm",
-        format: "a4",
-        compress: true,
-      });
-
-      let pdfFont = "helvetica";
-
-      try {
-        pdfFont = await registerTurkishPdfFont(doc);
-      } catch {
-        pdfFont = "helvetica";
-      }
-
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-
-      const margin = 16;
-      const maxWidth = pageWidth - margin * 2;
-      let y = 18;
-
-      const setTextColor = (type: "dark" | "muted" | "soft" = "dark") => {
-        if (type === "dark") doc.setTextColor(15, 23, 42);
-        if (type === "muted") doc.setTextColor(71, 85, 105);
-        if (type === "soft") doc.setTextColor(100, 116, 139);
-      };
-
-      const addPageBackground = () => {
-        doc.setFillColor(248, 250, 252);
-        doc.rect(0, 0, pageWidth, pageHeight, "F");
-
-        doc.setFillColor(255, 255, 255);
-        doc.roundedRect(9, 9, pageWidth - 18, pageHeight - 18, 5, 5, "F");
-
-        doc.setDrawColor(226, 232, 240);
-        doc.setLineWidth(0.2);
-        doc.roundedRect(9, 9, pageWidth - 18, pageHeight - 18, 5, 5, "S");
-      };
-
-      const checkPage = (space = 20) => {
-        if (y + space > pageHeight - 18) {
-          doc.addPage();
-          addPageBackground();
-          y = 18;
-        }
-      };
-
-      const addTitle = (text: string) => {
-        checkPage(18);
-
-        doc.setFont(pdfFont, "bold");
-        doc.setFontSize(18);
-        setTextColor("dark");
-        doc.text(text, margin, y);
-
-        y += 8;
-
-        doc.setDrawColor(203, 213, 225);
-        doc.setLineWidth(0.3);
-        doc.line(margin, y, pageWidth - margin, y);
-
-        y += 8;
-      };
-
-      const addMeta = (text: string) => {
-        checkPage(8);
-
-        doc.setFont(pdfFont, "normal");
-        doc.setFontSize(9);
-        setTextColor("soft");
-        doc.text(text, margin, y);
-
-        y += 7;
-      };
-
-      const addSection = (title: string, content: string | string[]) => {
-        checkPage(24);
-
-        const finalText = Array.isArray(content)
-          ? content.length
-            ? content.map((item, index) => `${index + 1}. ${item}`).join("\n")
-            : "Bilgi yok."
-          : content || "Bilgi yok.";
-
-        doc.setFillColor(248, 250, 252);
-        doc.setDrawColor(226, 232, 240);
-        doc.roundedRect(margin - 2, y - 5, maxWidth + 4, 9, 2, 2, "FD");
-
-        doc.setFont(pdfFont, "bold");
-        doc.setFontSize(11);
-        setTextColor("dark");
-        doc.text(title, margin, y);
-
-        y += 8;
-
-        doc.setFont(pdfFont, "normal");
-        doc.setFontSize(10.2);
-        setTextColor("muted");
-        doc.setLineHeightFactor(1.35);
-
-        const lines = doc.splitTextToSize(finalText, maxWidth) as string[];
-
-        lines.forEach((line) => {
-          checkPage(7);
-          doc.text(line, margin, y);
-          y += 5.7;
-        });
-
-        y += 5;
-      };
-
-      const addFooter = () => {
-        const pageCount = doc.getNumberOfPages();
-
-        for (let i = 1; i <= pageCount; i += 1) {
-          doc.setPage(i);
-          doc.setFont(pdfFont, "normal");
-          doc.setFontSize(8);
-          setTextColor("soft");
-
-          doc.text("InciLab Analiz Raporu", margin, pageHeight - 9);
-          doc.text(
-            `${i} / ${pageCount}`,
-            pageWidth - margin,
-            pageHeight - 9,
-            { align: "right" }
-          );
-        }
-      };
-
-      const today = new Date().toISOString().slice(0, 10);
-
-      addPageBackground();
-
-      addTitle("InciLab Analiz Raporu");
-      addMeta(`Oluşturulma tarihi: ${report.createdAt}`);
-      addMeta("Kimya · Kozmetik · Laboratuvar Analiz Asistanı");
-
-      y += 3;
-
-      addSection("Kullanıcının Sorusu", report.question);
-      addSection("Analiz Cevabı", report.answer);
-      addSection("Detaylı Açıklama", report.details);
-      addSection("Muhtemel Nedenler", report.causes);
-      addSection("Çözüm Önerileri", report.suggestions);
-      addSection("Notlar / Uyarılar", report.notes);
-
-      addFooter();
-
-      doc.save(`incilab-analiz-raporu-${today}.pdf`);
-      showToast("PDF indiriliyor.");
-    } catch {
-      showToast("PDF oluşturulamadı. Font veya jsPDF bağlantısı kontrol edilmeli.");
+    if (aiAnswer && typeof aiAnswer === "string" && aiAnswer.length > 10) {
+      setAnswer(aiAnswer);
+    } else {
+      setAnswer(mode === "formula" ? localFormulaAnswer(text) : localAnalysisAnswer(text));
     }
+
+    setLoading(false);
   };
 
-  return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#ffffff,#eef1f5_45%,#dfe5ec)] px-4 py-6 text-slate-900">
-      <section className="mx-auto max-w-6xl">
-        <div className="mb-6 rounded-[2rem] border border-white/70 bg-white/70 p-5 shadow-xl shadow-slate-200/70 backdrop-blur">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="mb-2 inline-flex rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-medium text-slate-500">
-                Kimya · Kozmetik · Analiz Asistanı
-              </p>
-              <h1 className="text-3xl font-bold tracking-tight text-slate-950 md:text-4xl">
-                InciLab
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                Analiz sonucunu, formülasyon mantığını veya hammadde yorumunu yaz;
-                ben sana anlaşılır, bilimsel ve uygulanabilir şekilde toparlayayım.
-              </p>
-            </div>
+  const handleClear = () => {
+    setQuestion("");
+    setAnswer("");
+  };
 
-            <div className="rounded-3xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-600 shadow-sm">
-              <p className="font-semibold text-slate-900">Durum</p>
-              <p>{loading ? "Analiz hazırlanıyor..." : "Hazır"}</p>
-            </div>
-          </div>
+  const handlePrint = () => {
+    const content = `
+      <html>
+        <head>
+          <title>InciLab Çıktı</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              padding: 32px;
+              color: #17142b;
+              line-height: 1.6;
+            }
+            h1 {
+              color: #6d28d9;
+              margin-bottom: 4px;
+            }
+            .badge {
+              display: inline-block;
+              padding: 6px 12px;
+              border-radius: 999px;
+              background: #f3e8ff;
+              color: #6d28d9;
+              font-size: 12px;
+              margin-bottom: 20px;
+            }
+            pre {
+              white-space: pre-wrap;
+              font-family: Arial, sans-serif;
+              background: #faf7ff;
+              padding: 20px;
+              border-radius: 18px;
+              border: 1px solid #eadcff;
+            }
+          </style>
+        </head>
+        <body>
+          <span class="badge">InciLab • ${mode === "formula" ? "Formül" : "Analiz"} Çıktısı</span>
+          <h1>InciLab Raporu</h1>
+          <h3>Soru</h3>
+          <pre>${question.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
+          <h3>Cevap</h3>
+          <pre>${answer.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    printWindow.document.write(content);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
+
+  const activeExamples = mode === "formula" ? exampleFormulas : exampleQuestions;
+
+  return (
+    <main className="incilab-page">
+      <section className="hero">
+        <div>
+          <div className="pill">Kimya • Kozmetik • Analiz Asistanı</div>
+          <h1>InciLab</h1>
+          <p>
+            Analiz sonucunu, formülasyon mantığını veya hammadde yorumunu yaz;
+            ben sana anlaşılır, bilimsel ve uygulanabilir şekilde toparlayayım.
+          </p>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
-          <section className="rounded-[2rem] border border-white/70 bg-white/75 p-5 shadow-xl shadow-slate-200/70 backdrop-blur">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-semibold text-slate-950">
-                  Analiz Sorusu
-                </h2>
-                <p className="text-sm text-slate-500">
-                  Laboratuvar sonucu, formül problemi veya içerik sorusu yazabilirsin.
-                </p>
-              </div>
+        <div className="status-card">
+          <span>Durum</span>
+          <strong>Hazır</strong>
+        </div>
+      </section>
+
+      <section className="layout">
+        <div className="left">
+          <div className="card main-card">
+            <div className="tabs">
+              <button
+                className={mode === "analysis" ? "tab active" : "tab"}
+                onClick={() => setMode("analysis")}
+              >
+                Analiz Sor
+              </button>
+              <button
+                className={mode === "formula" ? "tab active" : "tab"}
+                onClick={() => setMode("formula")}
+              >
+                Formül Sor
+              </button>
+            </div>
+
+            <div className="section-title">
+              <h2>{mode === "formula" ? "Formül Sorusu" : "Analiz Sorusu"}</h2>
+              <p>
+                {mode === "formula"
+                  ? "Ürün tipini, hedef cildi, hacmi/gramajı ve istediğin aktifleri yazabilirsin."
+                  : "Laboratuvar sonucu, formül problemi veya içerik sorusu yazabilirsin."}
+              </p>
             </div>
 
             <textarea
               value={question}
-              onChange={(event) => setQuestion(event.target.value)}
-              placeholder="Örn: Çıkış suyunda KOİ yüksek ama numune berrak değil. Kit ile ölçüm yaptım, neden olabilir?"
-              className="min-h-[170px] w-full resize-none rounded-3xl border border-slate-200 bg-white/90 p-4 text-sm leading-6 text-slate-800 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder={
+                mode === "formula"
+                  ? "Örn: 100 g yağlı cilt için niacinamide serum formülü hazırla. pH, fazlar ve üretim adımlarını da yaz."
+                  : "Örn: Çıkış suyunda KOİ yüksek ama numune berrak değil. Kit ile ölçüm yaptım, neden olabilir?"
+              }
             />
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              {samplePrompts.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() => setQuestion(item)}
-                  className="rounded-full border border-slate-200 bg-white/80 px-3 py-2 text-xs text-slate-600 transition hover:bg-slate-50"
-                >
+            <div className="chips">
+              {activeExamples.map((item) => (
+                <button key={item} onClick={() => setQuestion(item)}>
                   {item}
                 </button>
               ))}
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={askInciLab}
-                disabled={loading}
-                className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-300 transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {loading ? "Analiz ediliyor..." : "Analiz et"}
+            <div className="actions">
+              <button className="primary" onClick={handleAnalyze} disabled={loading}>
+                {loading ? "Hazırlanıyor..." : mode === "formula" ? "Formül oluştur" : "Analiz et"}
               </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setQuestion("");
-                  setReport(null);
-                  showToast("Ekran temizlendi.");
-                }}
-                className="rounded-2xl border border-slate-200 bg-white/80 px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-              >
+              <button className="secondary" onClick={handleClear}>
                 Temizle
               </button>
             </div>
+          </div>
 
-            <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50/80 p-5">
-              <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-950">
-                    Analiz Cevabı
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Cevap geldikten sonra detay, tümünü gör ve PDF butonları aktif çalışır.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!report) {
-                        showToast("Önce analiz cevabı oluşturmalısın.");
-                        return;
-                      }
-                      setShowDetails(true);
-                    }}
-                    className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-                  >
-                    Detayları görüntüle
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!report) {
-                        showToast("Önce analiz cevabı oluşturmalısın.");
-                        return;
-                      }
-                      setShowDetails(true);
-                    }}
-                    className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-                  >
-                    Tümünü gör
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={exportPDF}
-                    className="rounded-2xl bg-slate-950 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-700"
-                  >
-                    PDF dışa aktar
-                  </button>
-                </div>
-              </div>
-
-              {report ? (
-                <div className="space-y-4">
-                  <p className="whitespace-pre-line text-sm leading-7 text-slate-700">
-                    {reportPreview}
-                  </p>
-
-                  <div className="grid gap-3 md:grid-cols-3">
-                    <InfoMiniCard
-                      title="Muhtemel neden"
-                      text={report.causes[0] || "Neden bilgisi yok."}
-                    />
-                    <InfoMiniCard
-                      title="Öneri"
-                      text={report.suggestions[0] || "Öneri bilgisi yok."}
-                    />
-                    <InfoMiniCard
-                      title="Uyarı"
-                      text={report.notes[0] || "Uyarı bilgisi yok."}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 p-5 text-sm text-slate-500">
-                  Henüz analiz cevabı yok. Sorunu yazıp “Analiz et”e basınca cevap burada
-                  görünecek.
-                </div>
-              )}
-            </div>
-          </section>
-
-          <aside className="space-y-5">
-            <PanelCard
-              title="Trend Hammaddeler"
-              buttonText={showAllIngredients ? "Kısalt" : "Tümünü gör"}
-              onButtonClick={() => setShowAllIngredients((prev) => !prev)}
-            >
-              <div className="space-y-3">
-                {visibleIngredients.map((item) => (
-                  <SmallCard key={item.title} {...item} />
-                ))}
-              </div>
-            </PanelCard>
-
-            <PanelCard
-              title="Formül Alanı"
-              buttonText={showAllFormulas ? "Kısalt" : "Tümünü gör"}
-              onButtonClick={() => setShowAllFormulas((prev) => !prev)}
-            >
-              <div className="space-y-3">
-                {visibleFormulas.map((item) => (
-                  <SmallCard key={item.title} {...item} />
-                ))}
-              </div>
-            </PanelCard>
-
-            <PanelCard
-              title="Analiz Geçmişi"
-              buttonText={showAllHistory ? "Kısalt" : "Tümünü gör"}
-              onButtonClick={() => {
-                if (!history.length) {
-                  showToast("Henüz analiz geçmişi yok.");
-                  return;
-                }
-                setShowAllHistory((prev) => !prev);
-              }}
-            >
-              {visibleHistory.length ? (
-                <div className="space-y-3">
-                  {visibleHistory.map((item, index) => (
-                    <button
-                      key={`${item.createdAt}-${index}`}
-                      type="button"
-                      onClick={() => {
-                        setReport(item);
-                        setQuestion(item.question);
-                        showToast("Geçmiş analiz açıldı.");
-                      }}
-                      className="w-full rounded-2xl border border-slate-200 bg-white/80 p-3 text-left text-xs text-slate-600 transition hover:bg-slate-50"
-                    >
-                      <p className="mb-1 font-semibold text-slate-900">
-                        {item.question}
-                      </p>
-                      <p>{item.createdAt}</p>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-slate-500">
-                  Henüz geçmiş analiz yok. İlk cevaptan sonra burada görünecek.
-                </p>
-              )}
-            </PanelCard>
-          </aside>
-        </div>
-      </section>
-
-      {showDetails && report && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
-          <div className="max-h-[88vh] w-full max-w-3xl overflow-y-auto rounded-[2rem] border border-white/80 bg-white p-5 shadow-2xl">
-            <div className="mb-5 flex items-start justify-between gap-4">
+          <div className="card answer-card">
+            <div className="answer-head">
               <div>
-                <p className="mb-1 text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
-                  InciLab
-                </p>
-                <h2 className="text-2xl font-bold text-slate-950">
-                  Analiz Detayları
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  {report.createdAt}
-                </p>
+                <h2>InciLab Cevabı</h2>
+                <p>Cevap geldikten sonra detay, tümünü gör ve çıktı alma alanı aktif olur.</p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setShowDetails(false)}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-              >
-                Kapat
-              </button>
+              <div className="answer-buttons">
+                <button onClick={() => setAnswer(answer || "Henüz detaylandırılacak cevap yok kanka.")}>
+                  Detaylandır
+                </button>
+                <button onClick={handlePrint} disabled={!answer}>
+                  PDF / Yazdır
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-4">
-              <DetailBlock title="Kullanıcının Sorusu" content={report.question} />
-              <DetailBlock title="Analiz Cevabı" content={report.answer} />
-              <DetailBlock title="Detaylı Kimyasal Yorum" content={report.details} />
-              <DetailList title="Muhtemel Nedenler" items={report.causes} />
-              <DetailList title="Çözüm Önerileri" items={report.suggestions} />
-              <DetailList title="Notlar / Uyarılar" items={report.notes} />
-            </div>
-
-            <div className="mt-5 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={exportPDF}
-                className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
-              >
-                Bu raporu PDF indir
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowDetails(false)}
-                className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-              >
-                Panele dön
-              </button>
+            <div className={answer ? "answer-box filled" : "answer-box"}>
+              {answer ? (
+                <pre>{answer}</pre>
+              ) : (
+                <span>
+                  Henüz cevap yok. Sorunu yazıp butona basınca cevap burada görünecek.
+                </span>
+              )}
             </div>
           </div>
         </div>
-      )}
 
-      {toast && (
-        <div className="fixed bottom-5 left-1/2 z-[60] -translate-x-1/2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-2xl">
-          {toast}
-        </div>
-      )}
+        <aside className="right">
+          <div className="card side-card">
+            <div className="side-head">
+              <h2>Trend Hammaddeler</h2>
+              <button onClick={() => setShowAllTrends((v) => !v)}>
+                {showAllTrends ? "Kısalt" : "Tümünü gör"}
+              </button>
+            </div>
+
+            {(showAllTrends ? trends : trends.slice(0, 2)).map((item) => (
+              <div className="ingredient" key={item.name}>
+                <div>
+                  <h3>{item.name}</h3>
+                  <p>{item.desc}</p>
+                  {showAllTrends && <small>{item.detail}</small>}
+                </div>
+                <button onClick={() => setQuestion(`${item.name} kozmetikte ne işe yarar, kullanım oranı ve formül mantığı nedir?`)}>
+                  Detay
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="card side-card">
+            <div className="side-head">
+              <h2>Formül Alanı</h2>
+              <button onClick={() => setShowFormulaPanel((v) => !v)}>
+                {showFormulaPanel ? "Kapat" : "Aç"}
+              </button>
+            </div>
+
+            {showFormulaPanel && (
+              <>
+                <div className="formula-mini">
+                  <h3>Nemlendirici krem bazı</h3>
+                  <p>Su fazı + yağ fazı + emülgatör + koruyucu + pH ayarı mantığı.</p>
+                  <div>
+                    Basit bir kremde su fazı, humektanlar, yağ fazı, emülgatör sistemi,
+                    kıvam verici, koruyucu ve pH ayarı ayrı ayrı kontrol edilmelidir.
+                  </div>
+                  <button
+                    onClick={() => {
+                      setMode("formula");
+                      setQuestion("100 g nemlendirici krem bazı formülü hazırla. Fazları, oranları, pH ve üretim adımlarını yaz.");
+                    }}
+                  >
+                    Bu formülü aç
+                  </button>
+                </div>
+
+                <div className="formula-mini">
+                  <h3>Nazik temizleyici jel</h3>
+                  <p>Anyonik + amfoterik + noniyonik yüzey aktif kombinasyonu.</p>
+                  <div>
+                    Hassas cilt için sülfatsız sistemlerde köpük, kıvam ve pH dengesi birlikte düşünülür.
+                  </div>
+                  <button
+                    onClick={() => {
+                      setMode("formula");
+                      setQuestion("SLES içermeyen nazik temizleyici jel formülü hazırla. Yüzey aktif sistemi, pH ve üretim adımlarını yaz.");
+                    }}
+                  >
+                    Bu formülü aç
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </aside>
+      </section>
+
+      <style jsx>{`
+        .incilab-page {
+          min-height: 100vh;
+          padding: 32px;
+          color: #17142b;
+          background:
+            radial-gradient(circle at top left, rgba(168, 85, 247, 0.18), transparent 34%),
+            radial-gradient(circle at top right, rgba(236, 72, 153, 0.12), transparent 32%),
+            linear-gradient(135deg, #fbf7ff 0%, #ffffff 42%, #f4edff 100%);
+        }
+
+        .hero {
+          max-width: 1220px;
+          margin: 0 auto 24px;
+          padding: 28px 32px;
+          border-radius: 34px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 20px;
+          background: rgba(255, 255, 255, 0.78);
+          border: 1px solid rgba(139, 92, 246, 0.16);
+          box-shadow: 0 24px 60px rgba(109, 40, 217, 0.08);
+          backdrop-filter: blur(18px);
+        }
+
+        .pill {
+          display: inline-flex;
+          padding: 7px 14px;
+          border-radius: 999px;
+          color: #6d28d9;
+          font-size: 13px;
+          font-weight: 700;
+          border: 1px solid #e7d7ff;
+          background: #fbf7ff;
+          margin-bottom: 10px;
+        }
+
+        h1 {
+          font-size: 42px;
+          margin: 0;
+          letter-spacing: -1.4px;
+          color: #141124;
+        }
+
+        h2 {
+          margin: 0;
+          font-size: 20px;
+          color: #1f1836;
+        }
+
+        h3 {
+          margin: 0 0 6px;
+          font-size: 16px;
+          color: #24183f;
+        }
+
+        p {
+          margin: 0;
+          color: #695f82;
+          line-height: 1.55;
+        }
+
+        .hero p {
+          max-width: 760px;
+          margin-top: 8px;
+        }
+
+        .status-card {
+          min-width: 90px;
+          height: 90px;
+          border-radius: 28px;
+          display: grid;
+          place-items: center;
+          text-align: center;
+          border: 1px solid #eadcff;
+          background: linear-gradient(180deg, #ffffff, #fbf7ff);
+          box-shadow: 0 12px 32px rgba(109, 40, 217, 0.1);
+        }
+
+        .status-card span {
+          color: #6b6281;
+          font-size: 14px;
+        }
+
+        .status-card strong {
+          display: block;
+          color: #6d28d9;
+          font-size: 15px;
+          margin-top: -14px;
+        }
+
+        .layout {
+          max-width: 1220px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.9fr);
+          gap: 24px;
+        }
+
+        .left,
+        .right {
+          display: flex;
+          flex-direction: column;
+          gap: 22px;
+        }
+
+        .card {
+          background: rgba(255, 255, 255, 0.84);
+          border: 1px solid rgba(139, 92, 246, 0.16);
+          box-shadow: 0 18px 45px rgba(109, 40, 217, 0.08);
+          backdrop-filter: blur(16px);
+          border-radius: 30px;
+        }
+
+        .main-card,
+        .answer-card,
+        .side-card {
+          padding: 24px;
+        }
+
+        .tabs {
+          display: inline-flex;
+          padding: 5px;
+          border-radius: 999px;
+          background: #f3e8ff;
+          border: 1px solid #eadcff;
+          margin-bottom: 20px;
+        }
+
+        .tab {
+          border: none;
+          cursor: pointer;
+          border-radius: 999px;
+          padding: 11px 18px;
+          background: transparent;
+          color: #6d5f84;
+          font-weight: 800;
+        }
+
+        .tab.active {
+          color: white;
+          background: linear-gradient(135deg, #7c3aed, #c026d3);
+          box-shadow: 0 10px 22px rgba(124, 58, 237, 0.25);
+        }
+
+        .section-title {
+          margin-bottom: 18px;
+        }
+
+        textarea {
+          width: 100%;
+          min-height: 178px;
+          resize: vertical;
+          padding: 22px;
+          border-radius: 24px;
+          border: 1px solid #e6d8ff;
+          background: rgba(255, 255, 255, 0.9);
+          outline: none;
+          color: #201936;
+          font-size: 15px;
+          line-height: 1.6;
+          box-sizing: border-box;
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.7);
+        }
+
+        textarea:focus {
+          border-color: #a855f7;
+          box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.12);
+        }
+
+        textarea::placeholder {
+          color: #9b91ad;
+        }
+
+        .chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin: 18px 0;
+        }
+
+        .chips button,
+        .side-head button,
+        .ingredient button,
+        .answer-buttons button,
+        .formula-mini button {
+          cursor: pointer;
+          border: 1px solid #eadcff;
+          background: #ffffff;
+          color: #6a5688;
+          border-radius: 999px;
+          padding: 9px 13px;
+          font-weight: 700;
+          font-size: 13px;
+          transition: 0.2s ease;
+        }
+
+        .chips button:hover,
+        .side-head button:hover,
+        .ingredient button:hover,
+        .answer-buttons button:hover,
+        .formula-mini button:hover {
+          transform: translateY(-1px);
+          border-color: #c4a2ff;
+          color: #6d28d9;
+          background: #fbf7ff;
+        }
+
+        .actions {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
+
+        .primary,
+        .secondary {
+          border: none;
+          cursor: pointer;
+          border-radius: 17px;
+          padding: 15px 22px;
+          font-weight: 900;
+          font-size: 14px;
+        }
+
+        .primary {
+          color: white;
+          background: linear-gradient(135deg, #6d28d9, #a21caf);
+          box-shadow: 0 12px 24px rgba(109, 40, 217, 0.28);
+        }
+
+        .primary:disabled {
+          opacity: 0.65;
+          cursor: not-allowed;
+        }
+
+        .secondary {
+          color: #5f5375;
+          background: #ffffff;
+          border: 1px solid #eadcff;
+        }
+
+        .answer-head,
+        .side-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 14px;
+          align-items: flex-start;
+          margin-bottom: 18px;
+        }
+
+        .answer-head p {
+          font-size: 13px;
+          margin-top: 5px;
+        }
+
+        .answer-buttons {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+
+        .answer-buttons button:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+        }
+
+        .answer-box {
+          border: 1px dashed #d8c4ff;
+          background: linear-gradient(180deg, #ffffff, #fbf7ff);
+          min-height: 96px;
+          border-radius: 24px;
+          padding: 22px;
+          color: #74688c;
+        }
+
+        .answer-box.filled {
+          border-style: solid;
+          background: #fff;
+        }
+
+        pre {
+          white-space: pre-wrap;
+          word-wrap: break-word;
+          margin: 0;
+          font-family: inherit;
+          color: #24183f;
+          line-height: 1.65;
+          font-size: 14px;
+        }
+
+        .ingredient {
+          display: flex;
+          justify-content: space-between;
+          gap: 14px;
+          padding: 18px;
+          border-radius: 22px;
+          border: 1px solid #eadcff;
+          background: linear-gradient(180deg, #ffffff, #fbf7ff);
+          margin-top: 12px;
+        }
+
+        .ingredient p {
+          font-size: 14px;
+        }
+
+        .ingredient small {
+          display: block;
+          color: #806f9d;
+          margin-top: 8px;
+          line-height: 1.5;
+        }
+
+        .formula-mini {
+          padding: 18px;
+          border-radius: 22px;
+          border: 1px solid #eadcff;
+          background: linear-gradient(180deg, #ffffff, #fbf7ff);
+          margin-top: 12px;
+        }
+
+        .formula-mini p {
+          font-size: 14px;
+          margin-bottom: 12px;
+        }
+
+        .formula-mini div {
+          background: rgba(243, 232, 255, 0.58);
+          border-radius: 18px;
+          padding: 14px;
+          color: #67587f;
+          line-height: 1.55;
+          font-size: 14px;
+          margin-bottom: 12px;
+        }
+
+        @media (max-width: 980px) {
+          .incilab-page {
+            padding: 18px;
+          }
+
+          .hero {
+            flex-direction: column;
+            align-items: flex-start;
+            border-radius: 26px;
+          }
+
+          .layout {
+            grid-template-columns: 1fr;
+          }
+
+          h1 {
+            font-size: 34px;
+          }
+
+          .answer-head,
+          .side-head {
+            flex-direction: column;
+          }
+
+          .answer-buttons {
+            justify-content: flex-start;
+          }
+        }
+      `}</style>
     </main>
-  );
-}
-
-function InfoMiniCard({ title, text }: { title: string; text: string }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white/80 p-3">
-      <p className="mb-1 text-xs font-semibold text-slate-900">{title}</p>
-      <p className="text-xs leading-5 text-slate-500">{text}</p>
-    </div>
-  );
-}
-
-function PanelCard({
-  title,
-  buttonText,
-  onButtonClick,
-  children,
-}: {
-  title: string;
-  buttonText: string;
-  onButtonClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <section className="rounded-[2rem] border border-white/70 bg-white/75 p-5 shadow-xl shadow-slate-200/70 backdrop-blur">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-slate-950">{title}</h2>
-        <button
-          type="button"
-          onClick={onButtonClick}
-          className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
-        >
-          {buttonText}
-        </button>
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function SmallCard({
-  title,
-  desc,
-  detail,
-}: {
-  title: string;
-  desc: string;
-  detail: string;
-}) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white/80 p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="font-semibold text-slate-950">{title}</h3>
-          <p className="mt-1 text-sm leading-5 text-slate-500">{desc}</p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setOpen((prev) => !prev)}
-          className="shrink-0 rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
-        >
-          {open ? "Kapat" : "Detay"}
-        </button>
-      </div>
-
-      {open && (
-        <p className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm leading-6 text-slate-600">
-          {detail}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function DetailBlock({ title, content }: { title: string; content: string }) {
-  return (
-    <section className="rounded-3xl border border-slate-200 bg-slate-50/80 p-4">
-      <h3 className="mb-2 font-semibold text-slate-950">{title}</h3>
-      <p className="whitespace-pre-line text-sm leading-7 text-slate-700">
-        {content || "Bilgi yok."}
-      </p>
-    </section>
-  );
-}
-
-function DetailList({ title, items }: { title: string; items: string[] }) {
-  return (
-    <section className="rounded-3xl border border-slate-200 bg-slate-50/80 p-4">
-      <h3 className="mb-2 font-semibold text-slate-950">{title}</h3>
-      {items.length ? (
-        <ul className="list-disc space-y-2 pl-5 text-sm leading-6 text-slate-700">
-          {items.map((item, index) => (
-            <li key={`${item}-${index}`}>{item}</li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-slate-500">Bilgi yok.</p>
-      )}
-    </section>
   );
 }
