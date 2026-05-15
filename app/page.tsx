@@ -49,7 +49,7 @@ const defaultFormulaPhases: FormulaPhase[] = [
     ingredients: [
       { name: "Deiyonize Su", percent: 67, function: "Çözücü" },
       { name: "Glycerin", percent: 4, function: "Nemlendirici" },
-      { name: "Propanediol", percent: 4, function: "Nem / Çözücü destek" },
+      { name: "Propanediol", percent: 4, function: "Nem / çözücü destek" },
       { name: "Hydroxyethylcellulose", percent: 0.4, function: "Jel yapı" },
     ],
   },
@@ -67,7 +67,11 @@ const defaultFormulaPhases: FormulaPhase[] = [
     title: "Faz C - Koruyucu / pH",
     description: "Koruma, pH ayarı ve formülü tamamlama fazı.",
     ingredients: [
-      { name: "Phenoxyethanol & Ethylhexylglycerin", percent: 1, function: "Koruyucu" },
+      {
+        name: "Phenoxyethanol & Ethylhexylglycerin",
+        percent: 1,
+        function: "Koruyucu",
+      },
       { name: "Citric Acid / NaOH", percent: 0.2, function: "pH ayarı" },
       { name: "Aqua q.s.", percent: 15.1, function: "100'e tamamlama" },
     ],
@@ -87,9 +91,18 @@ const normalizeText = (text: string) => {
 
 const getFormulaTemplate = (prompt: string): FormulaPhase[] => {
   const q = normalizeText(prompt);
-  const has = (words: string[]) => words.some((word) => q.includes(normalizeText(word)));
+  const has = (words: string[]) =>
+    words.some((word) => q.includes(normalizeText(word)));
 
-  if (has(["temizleyici", "yuz temizleme", "yıkama jeli", "cleanser", "jel temizleyici"])) {
+  if (
+    has([
+      "temizleyici",
+      "yuz temizleme",
+      "yıkama jeli",
+      "cleanser",
+      "jel temizleyici",
+    ])
+  ) {
     return [
       {
         title: "Faz A - Sulu Faz",
@@ -105,9 +118,21 @@ const getFormulaTemplate = (prompt: string): FormulaPhase[] => {
         title: "Faz B - Yüzey Aktif Faz",
         description: "Temizleme, köpük ve ciltte yumuşak his sağlayan faz.",
         ingredients: [
-          { name: "Cocamidopropyl Betaine", percent: 10, function: "Amfoterik temizleyici" },
-          { name: "Decyl Glucoside", percent: 8, function: "Nazik noniyonik temizleyici" },
-          { name: "Sodium Cocoyl Glutamate", percent: 5, function: "Amino asit bazlı temizleyici" },
+          {
+            name: "Cocamidopropyl Betaine",
+            percent: 10,
+            function: "Amfoterik temizleyici",
+          },
+          {
+            name: "Decyl Glucoside",
+            percent: 8,
+            function: "Nazik noniyonik temizleyici",
+          },
+          {
+            name: "Sodium Cocoyl Glutamate",
+            percent: 5,
+            function: "Amino asit bazlı temizleyici",
+          },
         ],
       },
       {
@@ -122,15 +147,32 @@ const getFormulaTemplate = (prompt: string): FormulaPhase[] => {
         title: "Faz D - Koruyucu / pH",
         description: "Koruyucu sistem, pH ayarı ve tamamlayıcı su fazı.",
         ingredients: [
-          { name: "Phenoxyethanol & Ethylhexylglycerin", percent: 1, function: "Koruyucu" },
-          { name: "Citric Acid Solution", percent: 0.2, function: "pH ayarı" },
+          {
+            name: "Phenoxyethanol & Ethylhexylglycerin",
+            percent: 1,
+            function: "Koruyucu",
+          },
+          {
+            name: "Citric Acid Solution",
+            percent: 0.2,
+            function: "pH ayarı",
+          },
           { name: "Aqua q.s.", percent: 20.2, function: "100'e tamamlama" },
         ],
       },
     ];
   }
 
-  if (has(["krem", "cream", "bariyer", "onarıcı", "onarici", "nemlendirici krem"])) {
+  if (
+    has([
+      "krem",
+      "cream",
+      "bariyer",
+      "onarıcı",
+      "onarici",
+      "nemlendirici krem",
+    ])
+  ) {
     return [
       {
         title: "Faz A - Sulu Faz",
@@ -145,10 +187,18 @@ const getFormulaTemplate = (prompt: string): FormulaPhase[] => {
         title: "Faz B - Yağ Fazı",
         description: "Emollient, kıvam ve emülsiyon gövdesi bu fazda kurulur.",
         ingredients: [
-          { name: "Caprylic/Capric Triglyceride", percent: 6, function: "Emollient" },
+          {
+            name: "Caprylic/Capric Triglyceride",
+            percent: 6,
+            function: "Emollient",
+          },
           { name: "Squalane", percent: 4, function: "Yumuşatıcı" },
           { name: "Cetearyl Alcohol", percent: 3, function: "Kıvam / stabilite" },
-          { name: "Glyceryl Stearate Citrate", percent: 3, function: "Emülgatör" },
+          {
+            name: "Glyceryl Stearate Citrate",
+            percent: 3,
+            function: "Emülgatör",
+          },
         ],
       },
       {
@@ -163,7 +213,11 @@ const getFormulaTemplate = (prompt: string): FormulaPhase[] => {
         title: "Faz D - Koruyucu / pH",
         description: "Koruyucu, pH ayarı ve son tamamlama fazı.",
         ingredients: [
-          { name: "Phenoxyethanol & Ethylhexylglycerin", percent: 1, function: "Koruyucu" },
+          {
+            name: "Phenoxyethanol & Ethylhexylglycerin",
+            percent: 1,
+            function: "Koruyucu",
+          },
           { name: "Citric Acid / NaOH", percent: 0.2, function: "pH ayarı" },
           { name: "Aqua q.s.", percent: 10.5, function: "100'e tamamlama" },
         ],
@@ -195,8 +249,16 @@ const getFormulaTemplate = (prompt: string): FormulaPhase[] => {
         title: "Faz C - Koruyucu / pH",
         description: "Mikrobiyal koruma ve pH kontrol fazı.",
         ingredients: [
-          { name: "Phenoxyethanol & Ethylhexylglycerin", percent: 1, function: "Koruyucu" },
-          { name: "Citric Acid Solution", percent: 0.2, function: "pH ayarı" },
+          {
+            name: "Phenoxyethanol & Ethylhexylglycerin",
+            percent: 1,
+            function: "Koruyucu",
+          },
+          {
+            name: "Citric Acid Solution",
+            percent: 0.2,
+            function: "pH ayarı",
+          },
           { name: "Aqua q.s.", percent: 7.8, function: "100'e tamamlama" },
         ],
       },
@@ -211,15 +273,27 @@ const getFormulaTemplate = (prompt: string): FormulaPhase[] => {
         ingredients: [
           { name: "Deiyonize Su", percent: 54, function: "Çözücü" },
           { name: "Glycerin", percent: 3, function: "Nem desteği" },
-          { name: "Polyquaternium-10", percent: 0.3, function: "Saç yumuşatma" },
+          {
+            name: "Polyquaternium-10",
+            percent: 0.3,
+            function: "Saç yumuşatma",
+          },
         ],
       },
       {
         title: "Faz B - Temizleyici Faz",
         description: "Saç ve saç derisi temizliğini sağlayan yüzey aktif faz.",
         ingredients: [
-          { name: "Disodium Laureth Sulfosuccinate", percent: 12, function: "Nazik temizleyici" },
-          { name: "Cocamidopropyl Betaine", percent: 8, function: "Köpük / yumuşatma" },
+          {
+            name: "Disodium Laureth Sulfosuccinate",
+            percent: 12,
+            function: "Nazik temizleyici",
+          },
+          {
+            name: "Cocamidopropyl Betaine",
+            percent: 8,
+            function: "Köpük / yumuşatma",
+          },
           { name: "Decyl Glucoside", percent: 5, function: "Noniyonik temizleyici" },
         ],
       },
@@ -229,15 +303,34 @@ const getFormulaTemplate = (prompt: string): FormulaPhase[] => {
         ingredients: [
           { name: "Panthenol", percent: 1, function: "Saç bakım aktifi" },
           { name: "Sodium Chloride", percent: 1, function: "Viskozite ayarı" },
-          { name: "Phenoxyethanol & Ethylhexylglycerin", percent: 1, function: "Koruyucu" },
-          { name: "Citric Acid Solution", percent: 0.2, function: "pH ayarı" },
+          {
+            name: "Phenoxyethanol & Ethylhexylglycerin",
+            percent: 1,
+            function: "Koruyucu",
+          },
+          {
+            name: "Citric Acid Solution",
+            percent: 0.2,
+            function: "pH ayarı",
+          },
           { name: "Aqua q.s.", percent: 14.5, function: "100'e tamamlama" },
         ],
       },
     ];
   }
 
-  if (has(["serum", "leke", "aydınlatıcı", "aydinlatici", "anti aging", "anti-aging", "peptit", "peptide"])) {
+  if (
+    has([
+      "serum",
+      "leke",
+      "aydınlatıcı",
+      "aydinlatici",
+      "anti aging",
+      "anti-aging",
+      "peptit",
+      "peptide",
+    ])
+  ) {
     return [
       {
         title: "Faz A - Sulu Jel Faz",
@@ -246,7 +339,11 @@ const getFormulaTemplate = (prompt: string): FormulaPhase[] => {
           { name: "Deiyonize Su", percent: 67, function: "Çözücü" },
           { name: "Propanediol", percent: 5, function: "Nem / çözücü destek" },
           { name: "Glycerin", percent: 3, function: "Nemlendirici" },
-          { name: "Hydroxyethylcellulose", percent: 0.4, function: "Jel yapı" },
+          {
+            name: "Hydroxyethylcellulose",
+            percent: 0.4,
+            function: "Jel yapı",
+          },
         ],
       },
       {
@@ -264,7 +361,11 @@ const getFormulaTemplate = (prompt: string): FormulaPhase[] => {
         title: "Faz C - Koruyucu / pH",
         description: "Koruyucu sistem ve pH ayarı.",
         ingredients: [
-          { name: "Phenoxyethanol & Ethylhexylglycerin", percent: 1, function: "Koruyucu" },
+          {
+            name: "Phenoxyethanol & Ethylhexylglycerin",
+            percent: 1,
+            function: "Koruyucu",
+          },
           { name: "Citric Acid / NaOH", percent: 0.2, function: "pH ayarı" },
           { name: "Aqua q.s.", percent: 13.1, function: "100'e tamamlama" },
         ],
@@ -298,30 +399,39 @@ export default function InciLabPage() {
 
   const [inciQuery, setInciQuery] = useState("Niacinamide");
   const [targetAmount, setTargetAmount] = useState(500);
-  const [formulaPrompt, setFormulaPrompt] = useState("Hassas ciltler için nemlendirici serum");
-  const [formulaTitle, setFormulaTitle] = useState("Hassas ciltler için nemlendirici serum");
-  const [formulaPhases, setFormulaPhases] = useState<FormulaPhase[]>(defaultFormulaPhases);
+  const [formulaPrompt, setFormulaPrompt] = useState(
+    "Hassas ciltler için nemlendirici serum"
+  );
+  const [formulaTitle, setFormulaTitle] = useState(
+    "Hassas ciltler için nemlendirici serum"
+  );
+  const [formulaPhases, setFormulaPhases] =
+    useState<FormulaPhase[]>(defaultFormulaPhases);
 
   const [radarProduct, setRadarProduct] = useState("Hassas cilt serumu");
   const [radarPh, setRadarPh] = useState("5.5");
-  const [radarActives, setRadarActives] = useState("Niacinamide, Panthenol, Hyaluronic Acid");
-  const [radarPreservative, setRadarPreservative] = useState("Phenoxyethanol & Ethylhexylglycerin");
+  const [radarActives, setRadarActives] = useState(
+    "Niacinamide, Panthenol, Hyaluronic Acid"
+  );
+  const [radarPreservative, setRadarPreservative] = useState(
+    "Phenoxyethanol & Ethylhexylglycerin"
+  );
   const [radarResult, setRadarResult] = useState(
     "Bu alan formülün pH, aktif uyumu, koruyucu uyumu ve stabilite risklerini hızlıca yorumlamak için kullanılacak."
   );
 
   const [showDetail, setShowDetail] = useState(false);
 
-  const homeRef = useRef<HTMLDivElement | null>(null);
-  const chatRef = useRef<HTMLDivElement | null>(null);
-  const inciRef = useRef<HTMLDivElement | null>(null);
-  const formulaRef = useRef<HTMLDivElement | null>(null);
-  const analysisRef = useRef<HTMLDivElement | null>(null);
-  const trendRef = useRef<HTMLDivElement | null>(null);
-  const radarRef = useRef<HTMLDivElement | null>(null);
-  const sectorRef = useRef<HTMLDivElement | null>(null);
-  const libraryRef = useRef<HTMLDivElement | null>(null);
-  const settingsRef = useRef<HTMLDivElement | null>(null);
+  const homeRef = useRef<HTMLDivElement>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
+  const inciRef = useRef<HTMLDivElement>(null);
+  const formulaRef = useRef<HTMLDivElement>(null);
+  const analysisRef = useRef<HTMLDivElement>(null);
+  const trendRef = useRef<HTMLDivElement>(null);
+  const radarRef = useRef<HTMLDivElement>(null);
+  const sectorRef = useRef<HTMLDivElement>(null);
+  const libraryRef = useRef<HTMLDivElement>(null);
+  const settingsRef = useRef<HTMLDivElement>(null);
 
   const totalPercent = useMemo(() => {
     return formulaPhases.reduce((sum, phase) => sum + phasePercent(phase), 0);
@@ -331,7 +441,9 @@ export default function InciLabPage() {
     return formulaPhases.reduce((sum, phase) => {
       return (
         sum +
-        phase.ingredients.reduce((inner, item) => inner + (targetAmount * item.percent) / 100, 0)
+        phase.ingredients.reduce((inner, item) => {
+          return inner + (targetAmount * item.percent) / 100;
+        }, 0)
       );
     }, 0);
   }, [formulaPhases, targetAmount]);
@@ -354,7 +466,7 @@ export default function InciLabPage() {
   const scrollTo = (label: string) => {
     setActiveMenu(label);
 
-    const map: Record<string, RefObject<HTMLDivElement | null>> = {
+    const map: Record<string, RefObject<HTMLDivElement>> = {
       "Ana Sayfa": homeRef,
       Sohbet: chatRef,
       "INCI Sorgula": inciRef,
@@ -410,7 +522,7 @@ export default function InciLabPage() {
     }
   };
 
-  const createFormula = async () => {
+  const createFormula = () => {
     const cleanPrompt = formulaPrompt.trim() || "Kozmetik ürün formülü";
     const newFormula = getFormulaTemplate(cleanPrompt);
 
@@ -700,7 +812,9 @@ Cevabı şu formatta ver:
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-medium">Analiz Sorusu</h3>
-                  <p className="mt-1 text-sm text-slate-500">Bu alan kendi içinde soru alır.</p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Bu alan kendi içinde soru alır.
+                  </p>
                 </div>
                 <button
                   onClick={() => setShowDetail(true)}
@@ -793,10 +907,22 @@ Cevabı şu formatta ver:
 
             <div className="grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
               <div className="space-y-3">
-                <InputBox label="Ürün tipi" value={radarProduct} onChange={setRadarProduct} />
+                <InputBox
+                  label="Ürün tipi"
+                  value={radarProduct}
+                  onChange={setRadarProduct}
+                />
                 <InputBox label="pH" value={radarPh} onChange={setRadarPh} />
-                <InputBox label="Aktifler" value={radarActives} onChange={setRadarActives} />
-                <InputBox label="Koruyucu" value={radarPreservative} onChange={setRadarPreservative} />
+                <InputBox
+                  label="Aktifler"
+                  value={radarActives}
+                  onChange={setRadarActives}
+                />
+                <InputBox
+                  label="Koruyucu"
+                  value={radarPreservative}
+                  onChange={setRadarPreservative}
+                />
               </div>
 
               <div className="rounded-[24px] bg-white/70 p-5">
@@ -806,7 +932,9 @@ Cevabı şu formatta ver:
                     Ön Kontrol
                   </span>
                 </div>
-                <p className="whitespace-pre-line text-sm leading-7 text-slate-600">{radarResult}</p>
+                <p className="whitespace-pre-line text-sm leading-7 text-slate-600">
+                  {radarResult}
+                </p>
               </div>
             </div>
           </div>
@@ -852,7 +980,10 @@ Cevabı şu formatta ver:
           </SectionBlock>
 
           <SectionBlock refProp={trendRef} title="Trend Bileşenler">
-            <p className="mt-2 text-sm text-slate-500">Kozmetik aktifleri ve kullanım mantıkları.</p>
+            <p className="mt-2 text-sm text-slate-500">
+              Kozmetik aktifleri ve kullanım mantıkları.
+            </p>
+
             <div className="mt-5 grid gap-4 md:grid-cols-3">
               {[
                 ["Niacinamide", "Sebum dengesi, ton eşitsizliği ve bariyer desteği."],
@@ -875,7 +1006,9 @@ Cevabı şu formatta ver:
           </SectionBlock>
 
           <SectionBlock refProp={sectorRef} title="Endüstriyel Sektörler">
-            <p className="mt-2 text-sm text-slate-500">Sektöre göre analiz ve içerik yorumlama modu.</p>
+            <p className="mt-2 text-sm text-slate-500">
+              Sektöre göre analiz ve içerik yorumlama modu.
+            </p>
 
             <div className="mt-5 grid gap-4 md:grid-cols-3">
               {sectorCards.map((sector) => (
@@ -900,7 +1033,9 @@ Cevabı şu formatta ver:
           </SectionBlock>
 
           <SectionBlock refProp={settingsRef} title="Ayarlar">
-            <p className="mt-2 text-sm text-slate-500">Tema, mod ve yardımcı seçenekler burada duracak.</p>
+            <p className="mt-2 text-sm text-slate-500">
+              Tema, mod ve yardımcı seçenekler burada duracak.
+            </p>
           </SectionBlock>
         </section>
 
@@ -981,7 +1116,9 @@ Cevabı şu formatta ver:
                       Faz {phaseIndex + 1}
                     </p>
                     <h4 className="mt-1 font-bold text-slate-900">{phase.title}</h4>
-                    <p className="mt-1 text-xs leading-5 text-slate-500">{phase.description}</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                      {phase.description}
+                    </p>
                   </div>
 
                   <div className="rounded-2xl bg-violet-100 px-3 py-2 text-right text-xs font-bold text-violet-700">
@@ -1066,7 +1203,9 @@ Cevabı şu formatta ver:
               {messages.map((message, index) => (
                 <div
                   key={`${message.role}-${index}`}
-                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
                 >
                   <div
                     className={`max-w-[78%] rounded-3xl px-5 py-4 text-sm leading-7 ${
@@ -1173,7 +1312,7 @@ function SectionBlock({
   title,
   children,
 }: {
-  refProp: RefObject<HTMLDivElement | null>;
+  refProp: RefObject<HTMLDivElement>;
   title: string;
   children: ReactNode;
 }) {
@@ -1192,7 +1331,9 @@ function DetailBox({ title, text }: { title: string; text: string }) {
   return (
     <div className="rounded-3xl bg-violet-50/80 p-5">
       <h3 className="mb-2 font-semibold text-violet-700">{title}</h3>
-      <p className="whitespace-pre-line text-sm leading-7 text-slate-600">{text}</p>
+      <p className="whitespace-pre-line text-sm leading-7 text-slate-600">
+        {text}
+      </p>
     </div>
   );
 }
@@ -1208,7 +1349,9 @@ function InputBox({
 }) {
   return (
     <label className="block rounded-[22px] bg-white/70 p-4">
-      <span className="mb-2 block text-xs font-bold text-slate-500">{label}</span>
+      <span className="mb-2 block text-xs font-bold text-slate-500">
+        {label}
+      </span>
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
