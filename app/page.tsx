@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 
 type FormulaIngredient = {
   name: string;
@@ -10,7 +11,6 @@ type FormulaIngredient = {
 
 type FormulaPhase = {
   title: string;
-  percent: number;
   ingredients: FormulaIngredient[];
 };
 
@@ -19,42 +19,31 @@ type Message = {
   text: string;
 };
 
-const formulaPhases: FormulaPhase[] = [
+const defaultFormulaPhases: FormulaPhase[] = [
   {
     title: "Faz A (Sulu Faz)",
-    percent: 65,
     ingredients: [
-      { name: "Deiyonize Su", percent: 55.6, function: "Çözücü" },
-      { name: "Glycerin", percent: 5, function: "Nemlendirici" },
-      { name: "Pentylene Glycol", percent: 3, function: "Nemlendirici / Çözücü" },
-      { name: "Panthenol", percent: 1.4, function: "Yatıştırıcı" },
+      { name: "Deiyonize Su", percent: 65, function: "Çözücü" },
+      { name: "Glycerin", percent: 4, function: "Nemlendirici" },
+      { name: "Propanediol", percent: 3, function: "Nem / Çözücü Destek" },
     ],
   },
   {
     title: "Faz B (Aktif Faz)",
-    percent: 20,
     ingredients: [
-      { name: "Niacinamide", percent: 5, function: "Aydınlatıcı / Sebum Dengesi" },
+      { name: "Niacinamide", percent: 5, function: "Bariyer / Ton Desteği" },
+      { name: "Panthenol", percent: 2, function: "Yatıştırıcı" },
       { name: "Sodium Hyaluronate", percent: 0.3, function: "Nemlendirici" },
-      { name: "Allantoin", percent: 0.2, function: "Yatıştırıcı" },
-      { name: "Beta-Glucan", percent: 1, function: "Cilt Bariyeri Desteği" },
+      { name: "Allantoin", percent: 0.2, function: "Hassas Cilt Desteği" },
+      { name: "Beta-Glucan", percent: 1, function: "Bariyer Desteği" },
     ],
   },
   {
-    title: "Faz C (Yağ Fazı)",
-    percent: 5,
-    ingredients: [
-      { name: "Squalane", percent: 3, function: "Yumuşatıcı" },
-      { name: "Caprylic/Capric Triglyceride", percent: 2, function: "Emollient" },
-    ],
-  },
-  {
-    title: "Faz D (Koruyucu / pH)",
-    percent: 10,
+    title: "Faz C (Koruyucu / pH)",
     ingredients: [
       { name: "Phenoxyethanol & Ethylhexylglycerin", percent: 1, function: "Koruyucu" },
       { name: "Citric Acid / NaOH", percent: 0.2, function: "pH Ayarı" },
-      { name: "Aqua q.s.", percent: 8.8, function: "Tamamlama" },
+      { name: "Aqua q.s.", percent: 18.3, function: "Tamamlama" },
     ],
   },
 ];
@@ -76,6 +65,249 @@ const sectorCards = [
   "Çevre Kimyası",
   "Tekstil & Boya",
 ];
+
+const phasePercent = (phase: FormulaPhase) => {
+  return phase.ingredients.reduce((sum, item) => sum + item.percent, 0);
+};
+
+const getFormulaTemplate = (prompt: string): FormulaPhase[] => {
+  const q = prompt.toLocaleLowerCase("tr-TR");
+  const has = (words: string[]) => words.some((word) => q.includes(word));
+
+  if (has(["temizleyici", "yüz temizleme", "jel temizleyici", "cleanser", "yıkama jeli"])) {
+    return [
+      {
+        title: "Faz A (Sulu Faz)",
+        ingredients: [
+          { name: "Deiyonize Su", percent: 50, function: "Çözücü" },
+          { name: "Glycerin", percent: 4, function: "Nemlendirici" },
+          { name: "Xanthan Gum", percent: 0.3, function: "Kıvam Verici" },
+          { name: "Disodium EDTA", percent: 0.1, function: "Şelatlayıcı" },
+        ],
+      },
+      {
+        title: "Faz B (Yüzey Aktif Faz)",
+        ingredients: [
+          { name: "Cocamidopropyl Betaine", percent: 10, function: "Amfoterik Temizleyici" },
+          { name: "Decyl Glucoside", percent: 8, function: "Nazik Noniyonik Temizleyici" },
+          { name: "Sodium Cocoyl Glutamate", percent: 5, function: "Amino Asit Bazlı Temizleyici" },
+        ],
+      },
+      {
+        title: "Faz C (Aktif / Yatıştırıcı Faz)",
+        ingredients: [
+          { name: "Panthenol", percent: 1, function: "Yatıştırıcı" },
+          { name: "Allantoin", percent: 0.2, function: "Hassas Cilt Desteği" },
+        ],
+      },
+      {
+        title: "Faz D (Koruyucu / pH)",
+        ingredients: [
+          { name: "Phenoxyethanol & Ethylhexylglycerin", percent: 1, function: "Koruyucu" },
+          { name: "Citric Acid Solution", percent: 0.2, function: "pH Ayarı" },
+          { name: "Aqua q.s.", percent: 20.2, function: "Tamamlama" },
+        ],
+      },
+    ];
+  }
+
+  if (has(["krem", "cream", "bariyer krem", "nemlendirici krem", "onarıcı krem"])) {
+    return [
+      {
+        title: "Faz A (Sulu Faz)",
+        ingredients: [
+          { name: "Deiyonize Su", percent: 62, function: "Çözücü" },
+          { name: "Glycerin", percent: 4, function: "Nemlendirici" },
+          { name: "Xanthan Gum", percent: 0.3, function: "Kıvam Verici" },
+        ],
+      },
+      {
+        title: "Faz B (Yağ Fazı)",
+        ingredients: [
+          { name: "Caprylic/Capric Triglyceride", percent: 6, function: "Emollient" },
+          { name: "Squalane", percent: 4, function: "Yumuşatıcı" },
+          { name: "Cetearyl Alcohol", percent: 3, function: "Kıvam / Stabilite" },
+          { name: "Glyceryl Stearate Citrate", percent: 3, function: "Emülgatör" },
+        ],
+      },
+      {
+        title: "Faz C (Aktif Faz)",
+        ingredients: [
+          { name: "Niacinamide", percent: 4, function: "Bariyer / Ton Desteği" },
+          { name: "Panthenol", percent: 2, function: "Yatıştırıcı" },
+        ],
+      },
+      {
+        title: "Faz D (Koruyucu / pH)",
+        ingredients: [
+          { name: "Phenoxyethanol & Ethylhexylglycerin", percent: 1, function: "Koruyucu" },
+          { name: "Citric Acid / NaOH", percent: 0.2, function: "pH Ayarı" },
+          { name: "Aqua q.s.", percent: 10.5, function: "Tamamlama" },
+        ],
+      },
+    ];
+  }
+
+  if (has(["tonik", "mist", "toner", "sprey"])) {
+    return [
+      {
+        title: "Faz A (Sulu Faz)",
+        ingredients: [
+          { name: "Deiyonize Su", percent: 80, function: "Çözücü" },
+          { name: "Glycerin", percent: 3, function: "Nemlendirici" },
+          { name: "Propanediol", percent: 4, function: "Nem / Çözücü Destek" },
+        ],
+      },
+      {
+        title: "Faz B (Aktif Faz)",
+        ingredients: [
+          { name: "Panthenol", percent: 2, function: "Yatıştırıcı" },
+          { name: "Niacinamide", percent: 3, function: "Bariyer / Ton Desteği" },
+          { name: "Caffeine", percent: 1, function: "Canlandırıcı" },
+        ],
+      },
+      {
+        title: "Faz C (Koruyucu / pH)",
+        ingredients: [
+          { name: "Phenoxyethanol & Ethylhexylglycerin", percent: 1, function: "Koruyucu" },
+          { name: "Citric Acid Solution", percent: 0.2, function: "pH Ayarı" },
+          { name: "Aqua q.s.", percent: 5.8, function: "Tamamlama" },
+        ],
+      },
+    ];
+  }
+
+  if (has(["şampuan", "shampoo", "saç", "hair"])) {
+    return [
+      {
+        title: "Faz A (Sulu Faz)",
+        ingredients: [
+          { name: "Deiyonize Su", percent: 54, function: "Çözücü" },
+          { name: "Glycerin", percent: 3, function: "Nem Desteği" },
+          { name: "Polyquaternium-10", percent: 0.3, function: "Saç Yumuşatma" },
+        ],
+      },
+      {
+        title: "Faz B (Temizleyici Faz)",
+        ingredients: [
+          { name: "Disodium Laureth Sulfosuccinate", percent: 12, function: "Nazik Temizleyici" },
+          { name: "Cocamidopropyl Betaine", percent: 8, function: "Köpük / Yumuşatma" },
+          { name: "Decyl Glucoside", percent: 5, function: "Noniyonik Temizleyici" },
+        ],
+      },
+      {
+        title: "Faz C (Aktif / Ayar Fazı)",
+        ingredients: [
+          { name: "Panthenol", percent: 1, function: "Saç Bakım Aktifi" },
+          { name: "Sodium Chloride", percent: 1, function: "Viskozite Ayarı" },
+          { name: "Phenoxyethanol & Ethylhexylglycerin", percent: 1, function: "Koruyucu" },
+          { name: "Citric Acid Solution", percent: 0.2, function: "pH Ayarı" },
+          { name: "Aqua q.s.", percent: 14.5, function: "Tamamlama" },
+        ],
+      },
+    ];
+  }
+
+  if (has(["serum", "leke", "aydınlatıcı", "anti aging", "anti-aging", "peptit", "peptide"])) {
+    return [
+      {
+        title: "Faz A (Sulu Faz)",
+        ingredients: [
+          { name: "Deiyonize Su", percent: 67, function: "Çözücü" },
+          { name: "Propanediol", percent: 5, function: "Nem / Çözücü Destek" },
+          { name: "Glycerin", percent: 3, function: "Nemlendirici" },
+          { name: "Hydroxyethylcellulose", percent: 0.4, function: "Jel Yapı" },
+        ],
+      },
+      {
+        title: "Faz B (Aktif Faz)",
+        ingredients: [
+          { name: "Niacinamide", percent: 5, function: "Ton / Bariyer Desteği" },
+          { name: "Panthenol", percent: 2, function: "Yatıştırıcı" },
+          { name: "Sodium Hyaluronate", percent: 0.3, function: "Nemlendirici" },
+          { name: "Beta-Glucan", percent: 1, function: "Bariyer Desteği" },
+          { name: "Peptide Complex", percent: 2, function: "Bakım Aktifi" },
+        ],
+      },
+      {
+        title: "Faz C (Koruyucu / pH)",
+        ingredients: [
+          { name: "Phenoxyethanol & Ethylhexylglycerin", percent: 1, function: "Koruyucu" },
+          { name: "Citric Acid / NaOH", percent: 0.2, function: "pH Ayarı" },
+          { name: "Aqua q.s.", percent: 13.1, function: "Tamamlama" },
+        ],
+      },
+    ];
+  }
+
+  return defaultFormulaPhases;
+};
+
+const extractFormulaFromText = (text: string): FormulaPhase[] | null => {
+  if (!text) return null;
+
+  const tryParse = (raw: string) => {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  };
+
+  let parsed: any = tryParse(text);
+
+  if (!parsed) {
+    const codeBlock = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    if (codeBlock?.[1]) parsed = tryParse(codeBlock[1].trim());
+  }
+
+  if (!parsed) {
+    const first = text.indexOf("{");
+    const last = text.lastIndexOf("}");
+    if (first !== -1 && last !== -1 && last > first) {
+      parsed = tryParse(text.slice(first, last + 1));
+    }
+  }
+
+  const phasesRaw = Array.isArray(parsed) ? parsed : parsed?.phases;
+
+  if (!Array.isArray(phasesRaw)) return null;
+
+  const phases: FormulaPhase[] = phasesRaw
+    .map((phase: any) => {
+      const title = String(phase?.title || phase?.phase || "").trim();
+      const ingredientsRaw = phase?.ingredients;
+
+      if (!title || !Array.isArray(ingredientsRaw)) return null;
+
+      const ingredients: FormulaIngredient[] = ingredientsRaw
+        .map((item: any) => {
+          const name = String(item?.name || item?.ingredient || "").trim();
+          const percent = Number(item?.percent);
+          const fn = String(item?.function || item?.role || item?.purpose || "").trim();
+
+          if (!name || Number.isNaN(percent) || percent <= 0) return null;
+
+          return {
+            name,
+            percent,
+            function: fn || "Fonksiyon bilgisi",
+          };
+        })
+        .filter(Boolean);
+
+      if (!ingredients.length) return null;
+
+      return { title, ingredients };
+    })
+    .filter(Boolean);
+
+  const total = phases.reduce((sum, phase) => sum + phasePercent(phase), 0);
+
+  if (!phases.length || total < 90 || total > 110) return null;
+
+  return phases;
+};
 
 export default function InciLabPage() {
   const [activeMenu, setActiveMenu] = useState("Ana Sayfa");
@@ -103,6 +335,9 @@ export default function InciLabPage() {
   const [formulaPrompt, setFormulaPrompt] = useState(
     "Hassas ciltler için nemlendirici serum"
   );
+  const [formulaPhases, setFormulaPhases] =
+    useState<FormulaPhase[]>(defaultFormulaPhases);
+  const [formulaLoading, setFormulaLoading] = useState(false);
 
   const [radarProduct, setRadarProduct] = useState("Hassas cilt serumu");
   const [radarPh, setRadarPh] = useState("5.5");
@@ -129,10 +364,9 @@ export default function InciLabPage() {
   const libraryRef = useRef<HTMLDivElement | null>(null);
   const settingsRef = useRef<HTMLDivElement | null>(null);
 
-  const totalPercent = useMemo(
-    () => formulaPhases.reduce((sum, phase) => sum + phase.percent, 0),
-    []
-  );
+  const totalPercent = useMemo(() => {
+    return formulaPhases.reduce((sum, phase) => sum + phasePercent(phase), 0);
+  }, [formulaPhases]);
 
   const totalGram = useMemo(() => {
     return formulaPhases.reduce((sum, phase) => {
@@ -143,12 +377,12 @@ export default function InciLabPage() {
         }, 0)
       );
     }, 0);
-  }, [targetAmount]);
+  }, [formulaPhases, targetAmount]);
 
   const scrollTo = (label: string) => {
     setActiveMenu(label);
 
-    const map: Record<string, React.RefObject<HTMLDivElement | null>> = {
+    const map: Record<string, { current: HTMLDivElement | null }> = {
       "Ana Sayfa": homeRef,
       Sohbet: chatRef,
       "INCI Sorgula": inciRef,
@@ -204,6 +438,21 @@ export default function InciLabPage() {
     }
   };
 
+  const formulaTextForAI = (phases: FormulaPhase[]) => {
+    return phases
+      .map((phase) => {
+        const items = phase.ingredients
+          .map((item) => {
+            const gram = ((targetAmount * item.percent) / 100).toFixed(2);
+            return `${item.name}: %${item.percent} - ${gram} g - ${item.function}`;
+          })
+          .join("\n");
+
+        return `${phase.title} (%${phasePercent(phase).toFixed(2)})\n${items}`;
+      })
+      .join("\n\n");
+  };
+
   const sendChatMessage = async () => {
     const clean = chatInput.trim();
     if (!clean) return;
@@ -253,12 +502,83 @@ ${clean}
     setAnalysisLoading(false);
   };
 
-  const createFormula = () => {
-    setAnalysisQuestion(`${formulaPrompt} - ${targetAmount} ml/g hedef miktar`);
+  const createFormula = async () => {
+    const cleanPrompt = formulaPrompt.trim() || "Kozmetik ürün formülü";
+    const fallbackFormula = getFormulaTemplate(cleanPrompt);
+
+    setFormulaLoading(true);
+    setFormulaPhases(fallbackFormula);
+    setAnalysisQuestion(`${cleanPrompt} - ${targetAmount} ml/g hedef miktar`);
+
     setAnalysisAnswer(
-      "Formül oluşturuldu. Sağ panelde fazlara ayrılmış başlangıç reçetesi, yüzde oranları ve gram karşılıkları gösteriliyor. Bu taslak AR-GE başlangıç formülü gibi düşünülmelidir; stabilite, mikrobiyoloji, pH ve ambalaj uyumu ayrıca test edilmelidir."
+      `"${cleanPrompt}" isteğine göre formül tablosu güncelleniyor. Sağ panelde önce güvenli başlangıç template'i yüklendi; Gemini düzgün JSON döndürürse tablo AI formülüyle yenilenecek.`
     );
+
     scrollTo("Formül Oluştur");
+
+    const formulaPromptForAI = `
+Sen profesyonel kozmetik AR-GE formülasyon asistanısın.
+
+Kullanıcının istediği ürün:
+${cleanPrompt}
+
+Hedef miktar:
+${targetAmount} g / ml
+
+Lütfen bu ürüne uygun, toplamı yaklaşık %100 olan, fazlara ayrılmış başlangıç formülü oluştur.
+
+SADECE JSON döndür. Markdown, açıklama, kod bloğu yazma.
+
+JSON formatı kesinlikle şu olsun:
+{
+  "phases": [
+    {
+      "title": "Faz A (Sulu Faz)",
+      "ingredients": [
+        {
+          "name": "Deiyonize Su",
+          "percent": 60,
+          "function": "Çözücü"
+        }
+      ]
+    }
+  ]
+}
+
+Kurallar:
+- Toplam yüzde 100'e çok yakın olmalı.
+- Aqua q.s. ile tamamlayabilirsin.
+- Ürün tipine göre doğru faz mantığı kur.
+- Güneş ürünü, asitli ürün, retinoid gibi hassas ürünlerde güvenlik notunu fonksiyon alanında kısaca belirt.
+- Tehlikeli veya uygunsuz hammadde kullanma.
+`.trim();
+
+    const aiText = await askGemini(formulaPromptForAI);
+    const aiFormula = extractFormulaFromText(aiText);
+
+    if (aiFormula) {
+      setFormulaPhases(aiFormula);
+      setAnalysisAnswer(
+        `"${cleanPrompt}" isteğine göre formül tablosu AI tarafından güncellendi.
+
+Sağ panelde fazlar, içerikler, yüzde oranları ve ${targetAmount} ml/g hedef miktara göre gram karşılıkları yeniden hesaplandı.
+
+Bu formül AR-GE başlangıç taslağıdır. Ticari ürün için stabilite, mikrobiyoloji, pH takibi, ambalaj uyumu, koruyucu etkinlik testi ve mevzuat kontrolü yapılmalıdır.`
+      );
+    } else {
+      setAnalysisAnswer(
+        `"${cleanPrompt}" isteğine göre formül tablosu ürün tipine uygun template ile güncellendi.
+
+Gemini'den gelen cevap tabloya çevrilecek temiz JSON formatında olmadığı için sistem güvenli başlangıç formülünü kullandı.
+
+Kullanılan formül:
+${formulaTextForAI(fallbackFormula)}
+
+Bu formül AR-GE başlangıç taslağıdır. Ticari ürün için stabilite, mikrobiyoloji, pH takibi, ambalaj uyumu ve mevzuat kontrolü yapılmalıdır.`
+      );
+    }
+
+    setFormulaLoading(false);
   };
 
   const runRadar = async () => {
@@ -348,21 +668,7 @@ Cevabı şu formatta ver:
       addText("Analiz Cevabi", analysisAnswer);
       addText("Kimya Risk Radar", radarResult);
       addText("Hedef Miktar", `${targetAmount} ml / g`);
-      addText(
-        "Formul Fazlari",
-        formulaPhases
-          .map((phase) => {
-            const items = phase.ingredients
-              .map((item) => {
-                const gram = ((targetAmount * item.percent) / 100).toFixed(2);
-                return `${item.name}: %${item.percent} - ${gram} g - ${item.function}`;
-              })
-              .join("\n");
-
-            return `${phase.title} - %${phase.percent}\n${items}`;
-          })
-          .join("\n\n")
-      );
+      addText("Formul Fazlari", formulaTextForAI(formulaPhases));
 
       doc.save("incilab-raporu.pdf");
     } catch {
@@ -755,13 +1061,18 @@ Cevabı şu formatta ver:
             <input
               value={formulaPrompt}
               onChange={(event) => setFormulaPrompt(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") createFormula();
+              }}
               className="h-12 flex-1 bg-transparent text-sm outline-none"
+              placeholder="Örn: leke karşıtı serum, şampuan, tonik..."
             />
             <button
               onClick={createFormula}
-              className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-400 text-white shadow-lg shadow-violet-200 transition hover:scale-105"
+              disabled={formulaLoading}
+              className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-400 text-white shadow-lg shadow-violet-200 transition hover:scale-105 disabled:opacity-60"
             >
-              →
+              {formulaLoading ? "…" : "→"}
             </button>
           </div>
 
@@ -804,7 +1115,7 @@ Cevabı şu formatta ver:
               </div>
 
               <span className="rounded-full bg-emerald-100 px-3 py-2 text-xs font-bold text-emerald-600">
-                Tamamlandı
+                {formulaLoading ? "Güncelleniyor" : "Tamamlandı"}
               </span>
             </div>
 
@@ -817,9 +1128,9 @@ Cevabı şu formatta ver:
                   <div className="mb-5 flex items-start justify-between">
                     <h4 className="font-bold">{phase.title}</h4>
                     <div className="text-right font-bold text-violet-600">
-                      <p>% {phase.percent.toFixed(2)}</p>
+                      <p>% {phasePercent(phase).toFixed(2)}</p>
                       <p className="text-sm">
-                        {((targetAmount * phase.percent) / 100).toFixed(2)} g
+                        {((targetAmount * phasePercent(phase)) / 100).toFixed(2)} g
                       </p>
                     </div>
                   </div>
@@ -833,7 +1144,7 @@ Cevabı şu formatta ver:
 
                   {phase.ingredients.map((item) => (
                     <div
-                      key={item.name}
+                      key={`${phase.title}-${item.name}`}
                       className="grid grid-cols-[1.4fr_0.5fr_0.8fr_1.2fr] gap-2 py-3 text-xs text-slate-600"
                     >
                       <span className="font-semibold text-slate-700">{item.name}</span>
@@ -955,9 +1266,10 @@ Cevabı şu formatta ver:
               <DetailBox title="Analiz Sorusu" text={analysisQuestion} />
               <DetailBox title="Analiz Cevabı" text={analysisAnswer} />
               <DetailBox title="Kimya Risk Radar" text={radarResult} />
+              <DetailBox title="Güncel Formül" text={formulaTextForAI(formulaPhases)} />
               <DetailBox
                 title="Formülasyon Notu"
-                text="Bu formül AR-GE başlangıç taslağıdır. Ticari ürün için stabilite, mikrobiyoloji, ambalaj uyumu, pH takibi ve mevzuat kontrolü yapılmalıdır."
+                text="Bu formül AR-GE başlangıç taslağıdır. Ticari ürün için stabilite, mikrobiyoloji, ambalaj uyumu, pH takibi, koruyucu etkinlik testi ve mevzuat kontrolü yapılmalıdır."
               />
             </div>
 
@@ -982,7 +1294,7 @@ Cevabı şu formatta ver:
   );
 }
 
-function GlassCard({ children }: { children: React.ReactNode }) {
+function GlassCard({ children }: { children: ReactNode }) {
   return (
     <div className="rounded-[28px] border border-white/70 bg-white/50 p-6 shadow-[0_25px_80px_rgba(108,92,231,0.13)] backdrop-blur-2xl">
       {children}
