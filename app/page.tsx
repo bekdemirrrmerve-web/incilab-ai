@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 
 type FormulaIngredient = {
   name: string;
@@ -273,34 +273,37 @@ const extractFormulaFromText = (text: string): FormulaPhase[] | null => {
 
   if (!Array.isArray(phasesRaw)) return null;
 
-  const phases: FormulaPhase[] = phasesRaw
-    .map((phase: any) => {
-      const title = String(phase?.title || phase?.phase || "").trim();
-      const ingredientsRaw = phase?.ingredients;
+  const phases: FormulaPhase[] = [];
 
-      if (!title || !Array.isArray(ingredientsRaw)) return null;
+  for (const phase of phasesRaw) {
+    const title = String(phase?.title || phase?.phase || "").trim();
+    const ingredientsRaw = phase?.ingredients;
 
-      const ingredients: FormulaIngredient[] = ingredientsRaw
-        .map((item: any) => {
-          const name = String(item?.name || item?.ingredient || "").trim();
-          const percent = Number(item?.percent);
-          const fn = String(item?.function || item?.role || item?.purpose || "").trim();
+    if (!title || !Array.isArray(ingredientsRaw)) continue;
 
-          if (!name || Number.isNaN(percent) || percent <= 0) return null;
+    const ingredients: FormulaIngredient[] = [];
 
-          return {
-            name,
-            percent,
-            function: fn || "Fonksiyon bilgisi",
-          };
-        })
-        .filter(Boolean);
+    for (const item of ingredientsRaw) {
+      const name = String(item?.name || item?.ingredient || "").trim();
+      const percent = Number(item?.percent);
+      const fn = String(item?.function || item?.role || item?.purpose || "").trim();
 
-      if (!ingredients.length) return null;
+      if (!name || Number.isNaN(percent) || percent <= 0) continue;
 
-      return { title, ingredients };
-    })
-    .filter(Boolean);
+      ingredients.push({
+        name,
+        percent,
+        function: fn || "Fonksiyon bilgisi",
+      });
+    }
+
+    if (!ingredients.length) continue;
+
+    phases.push({
+      title,
+      ingredients,
+    });
+  }
 
   const total = phases.reduce((sum, phase) => sum + phasePercent(phase), 0);
 
@@ -382,7 +385,7 @@ export default function InciLabPage() {
   const scrollTo = (label: string) => {
     setActiveMenu(label);
 
-    const map: Record<string, { current: HTMLDivElement | null }> = {
+    const map: Record<string, RefObject<HTMLDivElement | null>> = {
       "Ana Sayfa": homeRef,
       Sohbet: chatRef,
       "INCI Sorgula": inciRef,
@@ -645,7 +648,7 @@ Cevabı şu formatta ver:
         doc.setFont("helvetica", "normal");
         doc.setFontSize(10);
 
-        const lines = doc.splitTextToSize(clean(content), maxWidth);
+        const lines = doc.splitTextToSize(clean(content), maxWidth) as string[];
 
         lines.forEach((line: string) => {
           if (y > 280) {
