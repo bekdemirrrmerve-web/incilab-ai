@@ -2,495 +2,515 @@
 
 import React, { useMemo, useState } from "react";
 
-type PhaseKey = "A" | "B" | "C" | "D";
+type ProductType = "cream" | "serum" | "cleanser";
 
 type Ingredient = {
-  phase: PhaseKey;
+  phase: "A" | "B" | "C" | "D";
+  phaseTitle: string;
   name: string;
   inci: string;
   percent: number;
   role: string;
-  whatItDoes: string;
+  detail: string;
   processNote: string;
 };
 
-type Formula = {
-  id: string;
+type FormulaTemplate = {
   title: string;
-  subtitle: string;
+  productType: string;
+  shortDescription: string;
   claim: string;
   targetPh: string;
-  expected: {
-    appearance: string;
-    color: string;
-    scent: string;
-    viscosity: string;
-    texture: string;
-    ph: string;
-    packaging: string;
-    stability: string;
-  };
+  expectedViscosity: string;
+  expectedColor: string;
+  expectedAppearance: string;
+  expectedScent: string;
+  expectedTexture: string;
+  packaging: string;
+  method: string[];
   ingredients: Ingredient[];
-  process: string[];
-  cautions: string[];
+  warning: string;
 };
 
-const formulas: Record<string, Formula> = {
-  barrierCream: {
-    id: "barrierCream",
+const formulaTemplates: Record<ProductType, FormulaTemplate> = {
+  cream: {
     title: "Bariyer Destekleyici Nemlendirici Krem",
-    subtitle: "Kuru / hassas / bariyer desteği isteyen ciltler için ön AR-GE formülü",
+    productType: "Krem / Emülsiyon",
+    shortDescription:
+      "Kuru, hassas veya bariyer desteği isteyen ciltler için ön AR-GE krem formülü.",
     claim:
       "Nem desteği sağlar, cilt bariyer hissini güçlendirir, yumuşak ve konforlu bir bitiş verir.",
     targetPh: "5.2 - 5.8",
-    expected: {
-      appearance: "Homojen, opak, parlak krem görünümü",
-      color: "Beyaz / kırık beyaz",
-      scent:
-        "Parfümsüz bırakılırsa hafif hammadde kokusu; parfüm eklenirse yumuşak kozmetik koku",
-      viscosity:
-        "Orta-yüksek viskozite; kavanoz veya airless ambalaja uygun krem kıvamı",
-      texture:
-        "Kolay yayılan, yumuşak, hafif film bırakan ama aşırı yağlı his vermeyen yapı",
-      ph: "5.2 - 5.8",
-      packaging: "Airless pompa, tüp veya kavanoz ambalaj",
-      stability:
-        "Isı-soğuk döngü, santrifüj, mikrobiyolojik test ve challenge test önerilir.",
-    },
+    expectedViscosity:
+      "Orta-yüksek viskozite. Akışkan olmayan, kavanoz / tüp / airless ambalaja uygun krem kıvamı.",
+    expectedColor: "Beyaz / kırık beyaz",
+    expectedAppearance: "Homojen, opak, parlak krem görünümü",
+    expectedScent:
+      "Parfümsüzse hafif hammadde kokusu; parfüm eklenirse yumuşak kozmetik koku.",
+    expectedTexture:
+      "Kolay yayılan, hafif film bırakan, çok yağlı olmayan yumuşak krem hissi.",
+    packaging: "Airless pompa, tüp veya kavanoz",
+    warning:
+      "Bu formül ön AR-GE denemesidir. Stabilite, mikrobiyoloji, challenge test ve ambalaj uyumluluğu yapılmadan piyasaya sunulmamalıdır.",
+    method: [
+      "Faz A için saf su ana behere alınır. EDTA çözündürülür.",
+      "Gliserin ayrı kapta ksantan gam ile ön dispersiyon yapılır ve su fazına yavaşça eklenir.",
+      "Faz A 70-75°C’ye kadar ısıtılır ve homojen karışım sağlanır.",
+      "Faz B ayrı beherde hazırlanır. Yağlar, emülgatör ve kıvam vericiler 70-75°C’de tamamen eritilir.",
+      "Faz B, Faz A üzerine yavaşça eklenir. Homojenizatör veya yüksek devirli karıştırıcı ile 3-5 dakika karıştırılır.",
+      "Karışım orta devirde soğutulur. 40°C altına düşünce Faz C aktifleri ve koruyucu eklenir.",
+      "pH ölçülür. Gerekirse sitrik asit veya sodyum hidroksit çözeltisiyle hedef pH’a ayarlanır.",
+      "Son kontrolde görünüm, koku, renk, viskozite, pH ve faz ayrımı değerlendirilir.",
+    ],
     ingredients: [
       {
         phase: "A",
+        phaseTitle: "Faz A - Su Fazı",
         name: "Saf Su",
         inci: "Aqua",
         percent: 72.5,
         role: "Ana çözücü",
-        whatItDoes:
-          "Formülün su fazını oluşturur. Suda çözünen aktiflerin ve nem tutucuların taşınmasını sağlar.",
+        detail:
+          "Formülün ana taşıyıcı fazıdır. Suda çözünen aktifleri, nem tutucuları ve yardımcı bileşenleri taşır.",
         processNote: "Ana behere alınır.",
       },
       {
         phase: "A",
+        phaseTitle: "Faz A - Su Fazı",
         name: "Gliserin",
         inci: "Glycerin",
         percent: 4,
-        role: "Humektan / nem tutucu",
-        whatItDoes:
+        role: "Nem tutucu / humektan",
+        detail:
           "Cilt yüzeyine su çekerek nem hissini artırır. Ürünün daha konforlu sürülmesine destek olur.",
-        processNote: "Su fazına eklenir, homojen karıştırılır.",
+        processNote: "Ksantan gamı ön ıslatmak için de kullanılabilir.",
       },
       {
         phase: "A",
+        phaseTitle: "Faz A - Su Fazı",
         name: "Ksantan Gam",
         inci: "Xanthan Gum",
         percent: 0.3,
         role: "Kıvam verici / stabilizatör",
-        whatItDoes:
-          "Formüle jelimsi yapı verir. Emülsiyonun daha stabil ve tok görünmesine yardımcı olur.",
-        processNote:
-          "Topaklanmayı önlemek için gliserinle ön dispersiyon yapılabilir.",
+        detail:
+          "Formüle jelimsi yapı verir. Faz ayrımı riskini azaltmaya ve ürünün daha tok görünmesine yardımcı olur.",
+        processNote: "Topaklanmaması için gliserinle ön dispersiyon yapılmalıdır.",
       },
       {
         phase: "A",
+        phaseTitle: "Faz A - Su Fazı",
         name: "Disodyum EDTA",
         inci: "Disodium EDTA",
         percent: 0.1,
         role: "Şelatlayıcı",
-        whatItDoes:
+        detail:
           "Metal iyonlarını bağlayarak formül stabilitesine ve koruyucu sistem performansına destek olur.",
         processNote: "Su fazında çözündürülür.",
       },
       {
         phase: "B",
+        phaseTitle: "Faz B - Yağ Fazı",
         name: "Kaprilik/Kaprik Trigliserit",
         inci: "Caprylic/Capric Triglyceride",
         percent: 6,
-        role: "Emolyan / yumuşatıcı yağ",
-        whatItDoes:
-          "Cilde yumuşaklık verir, kaygan sürüm hissini artırır ve yağ fazının temel taşıyıcısıdır.",
-        processNote: "Yağ fazında ısıtılır.",
+        role: "Emolyan",
+        detail:
+          "Cilde kayganlık ve yumuşaklık verir. Ağır olmayan, daha ipeksi bir sürüm hissi sağlar.",
+        processNote: "Yağ fazına alınır.",
       },
       {
         phase: "B",
-        name: "Setearil Alkol",
-        inci: "Cetearyl Alcohol",
-        percent: 3,
-        role: "Kıvam artırıcı / ko-emülgatör",
-        whatItDoes:
-          "Kreme gövde ve yoğunluk verir. Ürünün daha tok ve stabil durmasına yardım eder.",
-        processNote: "Yağ fazında tamamen eritilir.",
-      },
-      {
-        phase: "B",
+        phaseTitle: "Faz B - Yağ Fazı",
         name: "Gliseril Stearat Sitrat",
         inci: "Glyceryl Stearate Citrate",
         percent: 2.5,
         role: "Emülgatör",
-        whatItDoes:
+        detail:
           "Su ve yağ fazının birleşerek stabil krem yapısı oluşturmasını sağlar.",
+        processNote: "Yağ fazında tamamen eritilir.",
+      },
+      {
+        phase: "B",
+        phaseTitle: "Faz B - Yağ Fazı",
+        name: "Setearil Alkol",
+        inci: "Cetearyl Alcohol",
+        percent: 3,
+        role: "Kıvam artırıcı / ko-emülgatör",
+        detail:
+          "Kreme gövde verir. Daha yoğun, stabil ve dolgun bir yapı oluşturur.",
         processNote: "Yağ fazında eritilir.",
       },
       {
         phase: "B",
+        phaseTitle: "Faz B - Yağ Fazı",
         name: "Shea Yağı",
         inci: "Butyrospermum Parkii Butter",
         percent: 3,
-        role: "Besleyici yağ / emolyan",
-        whatItDoes:
-          "Kuru cilt hissini azaltır, ürüne daha zengin ve koruyucu bir dokunuş verir.",
+        role: "Besleyici emolyan",
+        detail:
+          "Kuru cilt hissini azaltır. Formüle daha zengin ve koruyucu bir dokunuş verir.",
         processNote: "Yağ fazında eritilir.",
       },
       {
         phase: "C",
+        phaseTitle: "Faz C - Soğuk Faz / Aktif Faz",
         name: "Niasinamid",
         inci: "Niacinamide",
         percent: 4,
         role: "Aktif bileşen",
-        whatItDoes:
-          "Cilt bariyeri, ton eşitsizliği görünümü ve sebum dengesi iddialarında kullanılan çok yönlü aktiftir.",
+        detail:
+          "Bariyer desteği, ton eşitsizliği görünümü ve sebum dengesi gibi iddialarda kullanılan çok yönlü aktiftir.",
         processNote: "40°C altına düşünce eklenir.",
       },
       {
         phase: "C",
+        phaseTitle: "Faz C - Soğuk Faz / Aktif Faz",
         name: "Pantenol",
         inci: "Panthenol",
         percent: 2,
-        role: "Yatıştırıcı / nem destekleyici aktif",
-        whatItDoes:
-          "Ciltte konfor hissini artırır, nem desteği ve bariyer hissi için kullanılır.",
+        role: "Nem / yatıştırıcı destek",
+        detail:
+          "Ciltte konfor hissini artırır. Bariyer destekli ve hassas cilt ürünlerinde güzel durur.",
         processNote: "Soğuk fazda eklenir.",
       },
       {
         phase: "C",
-        name: "Seramid Kompleksi",
-        inci: "Ceramide NP, Ceramide AP, Ceramide EOP",
-        percent: 1,
-        role: "Bariyer destek aktifi",
-        whatItDoes:
-          "Cilt bariyeri temasını güçlendiren premium aktif grubudur. Kuru ve hassas cilt ürünlerinde değerlidir.",
-        processNote: "Tedarikçi önerisine göre soğuk fazda veya yağ fazında kullanılır.",
-      },
-      {
-        phase: "C",
-        name: "Allantoin",
-        inci: "Allantoin",
-        percent: 0.3,
-        role: "Yatıştırıcı destek",
-        whatItDoes:
-          "Ciltte daha rahat ve konforlu his bırakmaya yardımcı olur.",
-        processNote: "Çözünürlük sınırına dikkat edilerek eklenir.",
-      },
-      {
-        phase: "C",
+        phaseTitle: "Faz C - Soğuk Faz / Aktif Faz",
         name: "Koruyucu Sistem",
         inci: "Phenoxyethanol, Ethylhexylglycerin",
         percent: 0.9,
         role: "Koruyucu",
-        whatItDoes:
-          "Ürünü mikrobiyal bozulmaya karşı korumaya yardımcı olur.",
-        processNote: "40°C altında eklenir.",
+        detail:
+          "Su içeren formülün mikrobiyal bozulmaya karşı korunmasına yardımcı olur.",
+        processNote: "Genelde 40°C altında eklenir.",
       },
       {
         phase: "C",
+        phaseTitle: "Faz C - Soğuk Faz / Aktif Faz",
         name: "Parfüm",
         inci: "Parfum",
         percent: 0.2,
         role: "Koku verici",
-        whatItDoes:
+        detail:
           "Ürünün duyusal algısını güzelleştirir. Hassas cilt ürünlerinde opsiyonel tutulabilir.",
         processNote: "Soğuk fazda eklenir.",
       },
       {
         phase: "D",
-        name: "pH Ayarlayıcı",
-        inci: "Citric Acid / Sodium Hydroxide",
-        percent: 0.2,
-        role: "pH düzenleyici",
-        whatItDoes:
-          "Ürünün hedef pH aralığına getirilmesini sağlar.",
-        processNote: "Son aşamada damla damla eklenerek pH kontrol edilir.",
-      },
-    ],
-    process: [
-      "Faz A için saf su ana behere alınır. Disodyum EDTA çözündürülür.",
-      "Gliserin ile ksantan gam önceden ıslatılır ve su fazına yavaşça eklenir. Topak kalmayana kadar karıştırılır.",
-      "Faz A 70-75°C’ye kadar ısıtılır.",
-      "Faz B ayrı beherde hazırlanır. Yağlar, emülgatör ve kıvam artırıcılar 70-75°C’de tamamen eritilir.",
-      "Faz B, Faz A üzerine yavaşça eklenir. Homojenizatör veya yüksek devirli karıştırıcı ile 3-5 dakika karıştırılır.",
-      "Karışım orta devirde soğumaya bırakılır. 40°C altına düşünce Faz C bileşenleri sırayla eklenir.",
-      "pH ölçülür. Gerekirse sitrik asit veya sodyum hidroksit çözeltisiyle 5.2-5.8 aralığına ayarlanır.",
-      "Viskozite, renk, koku, görünüm ve faz ayrımı kontrol edilir. Uygun ambalaja dolum yapılır.",
-    ],
-    cautions: [
-      "Bu formül ön AR-GE deneme formülüdür.",
-      "Piyasaya sunmadan önce stabilite, mikrobiyoloji, challenge test ve ambalaj uyumluluğu yapılmalıdır.",
-      "Aktiflerin tedarikçi teknik dokümanındaki pH, sıcaklık ve kullanım oranı sınırları kontrol edilmelidir.",
-    ],
-  },
-
-  gelCleanser: {
-    id: "gelCleanser",
-    title: "Nazik Jel Temizleyici",
-    subtitle: "Sülfatsız, cildi germeyen jel temizleyici ön formülü",
-    claim:
-      "Cildi nazikçe temizler, kuruluk hissini azaltmaya yardımcı olur, günlük kullanıma uygun yumuşak temizlik sağlar.",
-    targetPh: "5.3 - 6.0",
-    expected: {
-      appearance: "Şeffaf veya hafif opak jel",
-      color: "Renksiz / çok hafif sarımsı",
-      scent: "Hafif ferah kozmetik koku veya parfümsüz hammadde kokusu",
-      viscosity: "Orta viskoz akışkan jel; pompa veya flip-top şişeye uygun",
-      texture: "Kaygan, yumuşak köpüklü, cildi aşırı germeyen his",
-      ph: "5.3 - 6.0",
-      packaging: "Pompalı şişe veya flip-top şişe",
-      stability:
-        "Viskozite değişimi, bulanıklık, koku değişimi ve mikrobiyolojik dayanım izlenmelidir.",
-    },
-    ingredients: [
-      {
-        phase: "A",
-        name: "Saf Su",
-        inci: "Aqua",
-        percent: 69.6,
-        role: "Ana çözücü",
-        whatItDoes: "Temizleyici bazın ana taşıyıcı fazını oluşturur.",
-        processNote: "Ana behere alınır.",
-      },
-      {
-        phase: "A",
-        name: "Gliserin",
-        inci: "Glycerin",
-        percent: 3,
-        role: "Nem tutucu",
-        whatItDoes: "Temizlik sonrası kuruluk hissini azaltmaya yardımcı olur.",
-        processNote: "Su fazına eklenir.",
-      },
-      {
-        phase: "A",
-        name: "Hidroksietil Selüloz",
-        inci: "Hydroxyethylcellulose",
-        percent: 0.8,
-        role: "Jel kıvam verici",
-        whatItDoes: "Formüle jel yapısı ve akış kontrolü verir.",
-        processNote: "Yavaşça serpilerek hidrate edilir.",
-      },
-      {
-        phase: "B",
-        name: "Koko Glukozit",
-        inci: "Coco-Glucoside",
-        percent: 8,
-        role: "Nazik noniyonik yüzey aktif",
-        whatItDoes: "Temizleme ve köpük desteği sağlar. Daha yumuşak temizleyici profili verir.",
-        processNote: "Düşük devirde eklenir, köpürtmeden karıştırılır.",
-      },
-      {
-        phase: "B",
-        name: "Kokamidopropil Betain",
-        inci: "Cocamidopropyl Betaine",
-        percent: 10,
-        role: "Amfoterik yüzey aktif",
-        whatItDoes:
-          "Köpüğü destekler, temizleyici sistemin daha yumuşak hissedilmesine yardımcı olur.",
-        processNote: "Yavaşça eklenir.",
-      },
-      {
-        phase: "B",
-        name: "Sodyum Lauroil Sarkosinat",
-        inci: "Sodium Lauroyl Sarcosinate",
-        percent: 5,
-        role: "Anyonik yüzey aktif",
-        whatItDoes: "Temizleme gücü ve köpük performansını artırır.",
-        processNote: "Köpük oluşturmadan karıştırılır.",
-      },
-      {
-        phase: "C",
-        name: "Pantenol",
-        inci: "Panthenol",
-        percent: 1,
-        role: "Yatıştırıcı destek",
-        whatItDoes: "Temizlik sonrası daha konforlu cilt hissi verir.",
-        processNote: "Soğuk fazda eklenir.",
-      },
-      {
-        phase: "C",
-        name: "Koruyucu Sistem",
-        inci: "Phenoxyethanol, Ethylhexylglycerin",
-        percent: 0.9,
-        role: "Koruyucu",
-        whatItDoes: "Su bazlı formülün mikrobiyal dayanımını destekler.",
-        processNote: "40°C altında eklenir.",
-      },
-      {
-        phase: "C",
-        name: "Parfüm",
-        inci: "Parfum",
-        percent: 0.2,
-        role: "Koku verici",
-        whatItDoes: "Ürünün duyusal algısını iyileştirir.",
-        processNote: "Son aşamada eklenir.",
-      },
-      {
-        phase: "D",
-        name: "pH Ayarlayıcı",
-        inci: "Citric Acid / Sodium Hydroxide",
+        phaseTitle: "Faz D - Son Ayar",
+        name: "pH Ayarlayıcı / Suya Tamamlama",
+        inci: "Citric Acid / Sodium Hydroxide / Aqua",
         percent: 1.5,
-        role: "pH düzenleyici",
-        whatItDoes: "Temizleyiciyi cilde daha uyumlu pH aralığına getirir.",
-        processNote: "pH ölçülerek q.s. ayarlanır.",
+        role: "pH düzenleyici / q.s.",
+        detail:
+          "Formülün hedef pH aralığına getirilmesini sağlar. Pratikte pH ölçülerek q.s. ayarlanır.",
+        processNote: "Son aşamada damla damla eklenir ve pH tekrar ölçülür.",
       },
-    ],
-    process: [
-      "Saf su ana behere alınır. Gliserin eklenir.",
-      "Hidroksietil selüloz yavaşça serpilerek eklenir ve tam hidratasyon beklenir.",
-      "Yüzey aktifler düşük devirde, köpük oluşturmadan sırayla eklenir.",
-      "Karışım berrak veya homojen jel görünümü alana kadar karıştırılır.",
-      "Pantenol, koruyucu ve parfüm eklenir.",
-      "pH 5.3-6.0 aralığına ayarlanır.",
-      "Köpük, viskozite, berraklık, koku ve pH kontrol edilir.",
-    ],
-    cautions: [
-      "Yüzey aktif oranları tedarikçi aktif madde yüzdesine göre yeniden hesaplanmalıdır.",
-      "Göz çevresi iddiası varsa irritasyon testleri özellikle değerlendirilmelidir.",
-      "Viskozite pH ve tuz toleransına göre değişebilir.",
     ],
   },
 
   serum: {
-    id: "serum",
     title: "Nem ve Aydınlık Destekli Serum",
-    subtitle: "Hafif, su bazlı, yapışkanlığı düşük serum ön formülü",
+    productType: "Su bazlı serum",
+    shortDescription:
+      "Hafif, hızlı yayılan, nem ve canlı görünüm hedefleyen serum ön formülü.",
     claim:
       "Cilde nem desteği verir, daha canlı ve dengeli görünüm hedefler.",
     targetPh: "5.2 - 5.8",
-    expected: {
-      appearance: "Şeffaf veya hafif opalimsi serum",
-      color: "Renksiz / hafif sarımsı",
-      scent: "Parfümsüzse hafif aktif kokusu; parfümlü ise çok hafif kozmetik koku",
-      viscosity: "Düşük-orta viskozite; damlalıklı veya pompalı şişeye uygun",
-      texture: "Hafif, hızlı yayılan, düşük yağ hissi",
-      ph: "5.2 - 5.8",
-      packaging: "Damlalıklı şişe, airless pompa veya serum pompası",
-      stability:
-        "Aktif uyumluluğu, renk değişimi, pH drift ve mikrobiyolojik dayanım izlenmelidir.",
-    },
+    expectedViscosity:
+      "Düşük-orta viskozite. Damlalıklı veya serum pompalı ambalaja uygun.",
+    expectedColor: "Renksiz / hafif sarımsı",
+    expectedAppearance: "Şeffaf veya hafif opalimsi serum görünümü",
+    expectedScent:
+      "Parfümsüzse aktiflerden gelen hafif karakteristik koku olabilir.",
+    expectedTexture:
+      "Hafif, hızlı yayılan, düşük yağ hissi veren serum dokusu.",
+    packaging: "Damlalıklı şişe, airless serum pompası veya serum pompası",
+    warning:
+      "Serumlarda pH drift, renk değişimi, aktif uyumluluğu ve mikrobiyolojik dayanım mutlaka izlenmelidir.",
+    method: [
+      "Faz A için saf su ana behere alınır.",
+      "Propanediol ve gliserin eklenir.",
+      "Sodyum hiyalüronat ve ksantan gam yavaşça serpilerek hidrate edilir.",
+      "Niasinamid, pantenol ve betaine eklenir; tamamen çözünene kadar karıştırılır.",
+      "Koruyucu sistem eklenir.",
+      "Parfüm kullanılacaksa solubilizer ile ön karışım yapılıp eklenir.",
+      "pH 5.2-5.8 aralığına ayarlanır.",
+      "Berraklık, viskozite, renk, koku ve pH kontrol edilir.",
+    ],
     ingredients: [
       {
         phase: "A",
+        phaseTitle: "Faz A - Su Fazı",
         name: "Saf Su",
         inci: "Aqua",
-        percent: 82.1,
+        percent: 82.2,
         role: "Ana çözücü",
-        whatItDoes: "Serumun ana taşıyıcı fazıdır.",
+        detail: "Serumun ana taşıyıcı fazını oluşturur.",
         processNote: "Ana behere alınır.",
       },
       {
         phase: "A",
+        phaseTitle: "Faz A - Su Fazı",
         name: "Propanediol",
         inci: "Propanediol",
         percent: 5,
         role: "Nem destekleyici / çözücü",
-        whatItDoes:
+        detail:
           "Nem hissini artırır ve bazı aktiflerin çözünmesine destek olur.",
         processNote: "Su fazına eklenir.",
       },
       {
         phase: "A",
+        phaseTitle: "Faz A - Su Fazı",
+        name: "Gliserin",
+        inci: "Glycerin",
+        percent: 3,
+        role: "Humektan",
+        detail:
+          "Cilt yüzeyinde nem hissini artırır ve serumun daha kaygan yayılmasına destek olur.",
+        processNote: "Su fazına eklenir.",
+      },
+      {
+        phase: "A",
+        phaseTitle: "Faz A - Su Fazı",
         name: "Sodyum Hiyalüronat",
         inci: "Sodium Hyaluronate",
         percent: 0.2,
         role: "Nem tutucu aktif",
-        whatItDoes:
-          "Cilt yüzeyinde su tutmaya yardımcı olur, daha dolgun ve nemli his verir.",
-        processNote: "Yavaş hidrate edilir, topaklanma önlenir.",
+        detail:
+          "Cilt yüzeyinde su tutmaya yardımcı olur. Daha dolgun ve nemli his verir.",
+        processNote: "Yavaş hidrate edilmeli, topaklanma önlenmelidir.",
       },
       {
         phase: "A",
+        phaseTitle: "Faz A - Su Fazı",
         name: "Ksantan Gam",
         inci: "Xanthan Gum",
-        percent: 0.2,
+        percent: 0.15,
         role: "Hafif kıvam verici",
-        whatItDoes: "Seruma hafif gövde ve kayganlık kazandırır.",
-        processNote: "Gliserin/propanediol içinde ön dispersiyon yapılabilir.",
+        detail:
+          "Seruma hafif gövde kazandırır ve çok sulu akmasını azaltır.",
+        processNote: "Propanediol veya gliserinle ön dispersiyon yapılabilir.",
       },
       {
         phase: "B",
+        phaseTitle: "Faz B - Aktif Faz",
         name: "Niasinamid",
         inci: "Niacinamide",
         percent: 4,
         role: "Aktif bileşen",
-        whatItDoes:
+        detail:
           "Ton eşitsizliği görünümü, bariyer desteği ve sebum dengesi temalarında kullanılır.",
         processNote: "Oda sıcaklığında çözündürülür.",
       },
       {
         phase: "B",
+        phaseTitle: "Faz B - Aktif Faz",
         name: "Pantenol",
         inci: "Panthenol",
         percent: 2,
         role: "Nem / yatıştırıcı destek",
-        whatItDoes: "Ciltte konfor ve nem hissini destekler.",
-        processNote: "Su fazına eklenir.",
+        detail:
+          "Cildin daha konforlu ve nemli hissedilmesine yardımcı olur.",
+        processNote: "Su fazında çözündürülür.",
       },
       {
         phase: "B",
+        phaseTitle: "Faz B - Aktif Faz",
         name: "Betaine",
         inci: "Betaine",
-        percent: 3,
+        percent: 2,
         role: "Osmolit / nem destekleyici",
-        whatItDoes: "Cildin nemli ve yumuşak hissedilmesine yardımcı olur.",
+        detail:
+          "Cildin nemli, yumuşak ve daha konforlu hissedilmesine destek olur.",
         processNote: "Suda çözündürülür.",
       },
       {
         phase: "C",
+        phaseTitle: "Faz C - Son Faz",
         name: "Koruyucu Sistem",
         inci: "Phenoxyethanol, Ethylhexylglycerin",
         percent: 0.9,
         role: "Koruyucu",
-        whatItDoes: "Su bazlı serumun mikrobiyal güvenliğine destek olur.",
+        detail:
+          "Su bazlı serumun mikrobiyal bozulmaya karşı korunmasına destek olur.",
         processNote: "Son aşamada eklenir.",
       },
       {
         phase: "C",
+        phaseTitle: "Faz C - Son Faz",
         name: "Solubilizer",
         inci: "Polysorbate 20",
-        percent: 1,
+        percent: 0.5,
         role: "Çözündürmeye yardımcı",
-        whatItDoes:
-          "Parfüm veya yağda çözünen minik bileşenlerin serum içinde dağılmasına yardımcı olur.",
-        processNote: "Parfüm varsa ön karışım yapılır.",
+        detail:
+          "Parfüm veya yağda çözünen küçük bileşenlerin serum içinde dağılmasına yardımcı olur.",
+        processNote: "Parfümle ön karışım yapılabilir.",
       },
       {
         phase: "C",
-        name: "Parfüm / Esans",
+        phaseTitle: "Faz C - Son Faz",
+        name: "Parfüm",
         inci: "Parfum",
-        percent: 0.1,
+        percent: 0.05,
         role: "Koku verici",
-        whatItDoes: "Ürüne hafif duyusal koku verir. Hassas ciltte opsiyonel tutulabilir.",
+        detail:
+          "Ürüne hafif duyusal koku verir. Hassas cilt konseptinde çıkarılabilir.",
         processNote: "Solubilizer ile ön karışım yapılarak eklenir.",
+      },
+    ],
+  },
+
+  cleanser: {
+    title: "Nazik Jel Temizleyici",
+    productType: "Sülfatsız jel temizleyici",
+    shortDescription:
+      "Cildi germeden temizlemeyi hedefleyen, jel yapıda nazik temizleyici ön formülü.",
+    claim:
+      "Cildi nazikçe temizler, kuruluk ve gerginlik hissini azaltmaya yardımcı olur.",
+    targetPh: "5.3 - 6.0",
+    expectedViscosity:
+      "Orta viskoz jel. Pompalı veya flip-top ambalaja uygun.",
+    expectedColor: "Renksiz / hafif opak",
+    expectedAppearance: "Şeffaf veya hafif opalimsi jel",
+    expectedScent:
+      "Hafif ferah kozmetik koku veya parfümsüz hammadde kokusu.",
+    expectedTexture:
+      "Kaygan, yumuşak köpüklü, cildi aşırı germeyen temizlik hissi.",
+    packaging: "Pompalı şişe veya flip-top şişe",
+    warning:
+      "Temizleyicilerde yüzey aktif aktif madde oranı, göz/cilt iritasyon potansiyeli ve viskozite stabilitesi ayrıca değerlendirilmelidir.",
+    method: [
+      "Saf su ana behere alınır.",
+      "Gliserin ve EDTA eklenir.",
+      "Hidroksietil selüloz yavaşça serpilerek hidrate edilir.",
+      "Yüzey aktifler düşük devirde ve köpürtmeden sırayla eklenir.",
+      "Pantenol, koruyucu ve parfüm eklenir.",
+      "pH 5.3-6.0 aralığına ayarlanır.",
+      "Köpük, berraklık, viskozite, koku ve pH kontrol edilir.",
+    ],
+    ingredients: [
+      {
+        phase: "A",
+        phaseTitle: "Faz A - Su Fazı",
+        name: "Saf Su",
+        inci: "Aqua",
+        percent: 67.5,
+        role: "Ana çözücü",
+        detail: "Temizleyici bazın ana taşıyıcı fazını oluşturur.",
+        processNote: "Ana behere alınır.",
+      },
+      {
+        phase: "A",
+        phaseTitle: "Faz A - Su Fazı",
+        name: "Gliserin",
+        inci: "Glycerin",
+        percent: 3,
+        role: "Nem destekleyici",
+        detail:
+          "Temizlik sonrası kuruluk ve gerginlik hissini azaltmaya yardımcı olur.",
+        processNote: "Su fazına eklenir.",
+      },
+      {
+        phase: "A",
+        phaseTitle: "Faz A - Su Fazı",
+        name: "Hidroksietil Selüloz",
+        inci: "Hydroxyethylcellulose",
+        percent: 0.8,
+        role: "Jel kıvam verici",
+        detail:
+          "Ürüne jel yapı verir, akışkanlığı kontrol eder.",
+        processNote: "Yavaşça serpilerek hidrate edilir.",
+      },
+      {
+        phase: "A",
+        phaseTitle: "Faz A - Su Fazı",
+        name: "Disodyum EDTA",
+        inci: "Disodium EDTA",
+        percent: 0.1,
+        role: "Şelatlayıcı",
+        detail:
+          "Metal iyonlarını bağlayarak formül stabilitesine ve koruyucu sisteme destek olur.",
+        processNote: "Su fazında çözündürülür.",
+      },
+      {
+        phase: "B",
+        phaseTitle: "Faz B - Temizleyici Faz",
+        name: "Koko Glukozit",
+        inci: "Coco-Glucoside",
+        percent: 8,
+        role: "Nazik noniyonik yüzey aktif",
+        detail:
+          "Temizleme performansı ve yumuşak köpük desteği sağlar.",
+        processNote: "Düşük devirde, köpürtmeden eklenir.",
+      },
+      {
+        phase: "B",
+        phaseTitle: "Faz B - Temizleyici Faz",
+        name: "Kokamidopropil Betain",
+        inci: "Cocamidopropyl Betaine",
+        percent: 10,
+        role: "Amfoterik yüzey aktif",
+        detail:
+          "Köpüğü destekler, temizleyici sistemin daha yumuşak hissedilmesine yardımcı olur.",
+        processNote: "Yavaşça eklenir.",
+      },
+      {
+        phase: "B",
+        phaseTitle: "Faz B - Temizleyici Faz",
+        name: "Sodyum Lauroil Sarkosinat",
+        inci: "Sodium Lauroyl Sarcosinate",
+        percent: 7,
+        role: "Anyonik yüzey aktif",
+        detail:
+          "Temizleme gücünü ve köpük performansını artırır.",
+        processNote: "Köpük oluşturmadan düşük devirde eklenir.",
+      },
+      {
+        phase: "C",
+        phaseTitle: "Faz C - Soğuk Faz",
+        name: "Pantenol",
+        inci: "Panthenol",
+        percent: 1,
+        role: "Konfor destekleyici aktif",
+        detail:
+          "Temizlik sonrası ciltte daha yumuşak ve rahat his bırakmaya destek olur.",
+        processNote: "Son aşamada eklenir.",
+      },
+      {
+        phase: "C",
+        phaseTitle: "Faz C - Soğuk Faz",
+        name: "Koruyucu Sistem",
+        inci: "Phenoxyethanol, Ethylhexylglycerin",
+        percent: 0.9,
+        role: "Koruyucu",
+        detail:
+          "Su bazlı temizleyicinin mikrobiyal dayanımına destek olur.",
+        processNote: "40°C altında eklenir.",
+      },
+      {
+        phase: "C",
+        phaseTitle: "Faz C - Soğuk Faz",
+        name: "Parfüm",
+        inci: "Parfum",
+        percent: 0.2,
+        role: "Koku verici",
+        detail:
+          "Ürünün daha hoş kokmasını sağlar. Hassas cilt konseptinde opsiyonel tutulabilir.",
+        processNote: "Son aşamada eklenir.",
       },
       {
         phase: "D",
-        name: "pH Ayarlayıcı",
-        inci: "Citric Acid / Sodium Hydroxide",
+        phaseTitle: "Faz D - pH Ayarı",
+        name: "pH Ayarlayıcı / Suya Tamamlama",
+        inci: "Citric Acid / Sodium Hydroxide / Aqua",
         percent: 1.5,
-        role: "pH düzenleyici",
-        whatItDoes: "Formülün hedef pH aralığında kalmasını sağlar.",
+        role: "pH düzenleyici / q.s.",
+        detail:
+          "Temizleyiciyi ciltle daha uyumlu pH aralığına getirir.",
         processNote: "pH ölçülerek q.s. ayarlanır.",
       },
-    ],
-    process: [
-      "Saf su ana behere alınır.",
-      "Propanediol eklenir. Ksantan gam ve sodyum hiyalüronat yavaşça dağıtılır.",
-      "Tam hidratasyon için düşük-orta devirde karıştırılır.",
-      "Niasinamid, pantenol ve betaine eklenir; tamamen çözünene kadar karıştırılır.",
-      "Koruyucu sistem eklenir.",
-      "Parfüm kullanılacaksa solubilizer ile ön karışım yapılıp eklenir.",
-      "pH 5.2-5.8 aralığına ayarlanır.",
-      "Berraklık, viskozite, koku, renk ve pH kontrol edilir.",
-    ],
-    cautions: [
-      "Hiyalüronik asit türevleri hidratasyon süresine göre viskoziteyi sonradan artırabilir.",
-      "Niasinamid çok düşük pH değerlerinde tercih edilmez.",
-      "Parfümsüz versiyon hassas cilt konsepti için daha uygundur.",
     ],
   },
 };
@@ -502,398 +522,431 @@ function formatNumber(value: number) {
   }).format(value);
 }
 
-function phaseName(phase: PhaseKey) {
-  const names: Record<PhaseKey, string> = {
-    A: "Faz A - Su Fazı",
-    B: "Faz B - Yağ / Yüzey Aktif Fazı",
-    C: "Faz C - Soğuk Faz / Aktif Faz",
-    D: "Faz D - pH / Son Ayar",
-  };
-  return names[phase];
+function detectProductType(text: string): ProductType {
+  const lower = text.toLocaleLowerCase("tr-TR");
+
+  if (
+    lower.includes("serum") ||
+    lower.includes("hyaluron") ||
+    lower.includes("aydınlık") ||
+    lower.includes("leke") ||
+    lower.includes("ton eşit")
+  ) {
+    return "serum";
+  }
+
+  if (
+    lower.includes("temiz") ||
+    lower.includes("yıkama") ||
+    lower.includes("jel") ||
+    lower.includes("cleanser") ||
+    lower.includes("köpük")
+  ) {
+    return "cleanser";
+  }
+
+  return "cream";
 }
 
-export default function InciLabPage() {
-  const [selectedFormulaId, setSelectedFormulaId] = useState("barrierCream");
-  const [batchSize, setBatchSize] = useState(100);
-  const [query, setQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<
-    "formula" | "process" | "ingredients" | "properties"
-  >("formula");
-  const [showAll, setShowAll] = useState(false);
+function createAnalysisAnswer(question: string) {
+  const q = question.toLocaleLowerCase("tr-TR");
 
-  const formula = formulas[selectedFormulaId];
+  if (!question.trim()) {
+    return "Analiz etmek istediğin hammaddeyi, ürünü veya formül problemini yazınca burada sade ve teknik bir açıklama oluşacak.";
+  }
+
+  if (q.includes("niasinamid") || q.includes("niacinamide")) {
+    return "Niasinamid; bariyer desteği, ton eşitsizliği görünümü ve sebum dengesi için sık kullanılan çok yönlü bir aktiftir. Genelde cilt bakım formüllerinde pH 5-7 aralığında daha konforlu değerlendirilir. Çok asidik sistemlerle birlikte düşünülüyorsa stabilite ve cilt toleransı ayrıca kontrol edilmelidir.";
+  }
+
+  if (q.includes("gliserin") || q.includes("glycerin")) {
+    return "Gliserin güçlü bir humektandır. Su tutarak ciltte nem hissini artırır. Formülde sürüm konforunu artırır ama yüksek oranlarda yapışkanlık hissi verebilir. Krem, serum, temizleyici ve saç bakım ürünlerinde çok kullanışlıdır.";
+  }
+
+  if (q.includes("ksantan") || q.includes("xanthan")) {
+    return "Ksantan gam doğal kökenli bir kıvam ve stabilite destekleyicisidir. Su fazına yapı verir, süspansiyon ve emülsiyon stabilitesine yardım eder. Topaklanmaması için genelde gliserin/propanediol içinde ön dispersiyon yapılıp suya eklenmesi daha temiz sonuç verir.";
+  }
+
+  if (q.includes("ph") || q.includes("pH")) {
+    return "pH, hem cilt uyumu hem de aktif/koruyucu sistem performansı için kritik bir kontroldür. Cilt bakım ürünlerinde çoğunlukla 5.0-6.0 aralığı hedeflenir; temizleyicilerde 5.3-6.5 bandı tercih edilebilir. Nihai karar aktiflere, koruyucuya ve ürün iddiasına göre verilir.";
+  }
+
+  return "Bu alan İnciLab analiz modülü gibi çalışır: hammadde görevi, formüldeki davranışı, pH/çözünürlük/stabilite etkisi ve pratik üretim notlarını sade şekilde yorumlar. Daha özel sonuç için hammadde adı, ürün tipi ve hedef iddiayı birlikte yazmak en iyi sonucu verir.";
+}
+
+export default function Page() {
+  const [analysisQuestion, setAnalysisQuestion] = useState("");
+  const [analysisAnswer, setAnalysisAnswer] = useState(
+    "Burada analiz sonucu görünecek. Hammadde, INCI, ürün tipi veya formül problemi yazabilirsin."
+  );
+
+  const [formulaQuestion, setFormulaQuestion] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<ProductType>("cream");
+  const [batchSize, setBatchSize] = useState(100);
+  const [activeFormulaTab, setActiveFormulaTab] = useState<
+    "formula" | "method" | "ingredients" | "properties"
+  >("formula");
+
+  const formula = formulaTemplates[selectedProduct];
 
   const totalPercent = useMemo(() => {
     return formula.ingredients.reduce((sum, item) => sum + item.percent, 0);
   }, [formula]);
 
-  const phaseGroups = useMemo(() => {
-    const phases: PhaseKey[] = ["A", "B", "C", "D"];
+  const groupedIngredients = useMemo(() => {
+    const phases: Array<"A" | "B" | "C" | "D"> = ["A", "B", "C", "D"];
+
     return phases
-      .map((phase) => ({
-        phase,
-        items: formula.ingredients.filter((item) => item.phase === phase),
-      }))
+      .map((phase) => {
+        const items = formula.ingredients.filter((item) => item.phase === phase);
+        return {
+          phase,
+          title: items[0]?.phaseTitle || `Faz ${phase}`,
+          items,
+        };
+      })
       .filter((group) => group.items.length > 0);
   }, [formula]);
 
-  function handleGenerateFromQuery() {
-    const lower = query.toLocaleLowerCase("tr-TR");
-
-    if (lower.includes("temiz") || lower.includes("jel") || lower.includes("yıkama")) {
-      setSelectedFormulaId("gelCleanser");
-    } else if (
-      lower.includes("serum") ||
-      lower.includes("aydınlık") ||
-      lower.includes("leke") ||
-      lower.includes("hyaluron")
-    ) {
-      setSelectedFormulaId("serum");
-    } else {
-      setSelectedFormulaId("barrierCream");
-    }
-
-    setActiveTab("formula");
-    setShowAll(true);
+  function handleAnalysis() {
+    setAnalysisAnswer(createAnalysisAnswer(analysisQuestion));
   }
 
-  function buildTextOutput() {
+  function handleFormulaGenerate() {
+    const detected = detectProductType(formulaQuestion);
+    setSelectedProduct(detected);
+    setActiveFormulaTab("formula");
+  }
+
+  function copyFormulaText() {
     const lines: string[] = [];
 
-    lines.push(`İNCILAB AR-GE FORMÜL KARTI`);
+    lines.push("İNCİLAB AR-GE FORMÜL KARTI");
+    lines.push("");
     lines.push(`Ürün: ${formula.title}`);
-    lines.push(`Açıklama: ${formula.subtitle}`);
+    lines.push(`Ürün tipi: ${formula.productType}`);
+    lines.push(`Açıklama: ${formula.shortDescription}`);
     lines.push(`Hedef iddia: ${formula.claim}`);
     lines.push(`Hedef pH: ${formula.targetPh}`);
     lines.push(`Batch: ${batchSize} g`);
     lines.push("");
-    lines.push("FORMÜL:");
 
-    phaseGroups.forEach((group) => {
+    lines.push("FORMÜL:");
+    groupedIngredients.forEach((group) => {
       lines.push("");
-      lines.push(phaseName(group.phase));
+      lines.push(group.title);
       group.items.forEach((item) => {
         const amount = (item.percent * batchSize) / 100;
         lines.push(
           `- ${item.name} | INCI: ${item.inci} | %${formatNumber(
             item.percent
-          )} | ${formatNumber(amount)} g | Görev: ${item.role}`
+          )} | ${formatNumber(amount)} g | ${item.role}`
         );
       });
     });
 
     lines.push("");
-    lines.push("ÜRETİM YÖNTEMİ:");
-    formula.process.forEach((step, index) => {
+    lines.push("FAZ FAZ ÜRETİM:");
+    formula.method.forEach((step, index) => {
       lines.push(`${index + 1}. ${step}`);
     });
 
     lines.push("");
     lines.push("BEKLENEN ÜRÜN ÖZELLİKLERİ:");
-    lines.push(`Görünüm: ${formula.expected.appearance}`);
-    lines.push(`Renk: ${formula.expected.color}`);
-    lines.push(`Koku: ${formula.expected.scent}`);
-    lines.push(`Viskozite: ${formula.expected.viscosity}`);
-    lines.push(`Doku/Hissiyat: ${formula.expected.texture}`);
-    lines.push(`pH: ${formula.expected.ph}`);
-    lines.push(`Ambalaj: ${formula.expected.packaging}`);
-    lines.push(`Stabilite: ${formula.expected.stability}`);
-
+    lines.push(`Görünüm: ${formula.expectedAppearance}`);
+    lines.push(`Renk: ${formula.expectedColor}`);
+    lines.push(`Koku: ${formula.expectedScent}`);
+    lines.push(`Viskozite: ${formula.expectedViscosity}`);
+    lines.push(`Doku/Hissiyat: ${formula.expectedTexture}`);
+    lines.push(`pH: ${formula.targetPh}`);
+    lines.push(`Ambalaj: ${formula.packaging}`);
     lines.push("");
-    lines.push("UYARILAR:");
-    formula.cautions.forEach((warning) => lines.push(`- ${warning}`));
+    lines.push(`AR-GE Uyarısı: ${formula.warning}`);
 
-    return lines.join("\n");
-  }
-
-  async function copyFormula() {
-    await navigator.clipboard.writeText(buildTextOutput());
+    navigator.clipboard.writeText(lines.join("\n"));
     alert("Formül kartı kopyalandı kankam ✨");
   }
 
-  function printAsPdf() {
+  function printPage() {
     window.print();
   }
 
   return (
     <main className="incilab-page">
+      <section className="topbar no-print">
+        <div className="brand">
+          <div className="brand-mark">İ</div>
+          <div>
+            <strong>İnciLab</strong>
+            <span>Kimya & Kozmetik AR-GE Asistanı</span>
+          </div>
+        </div>
+
+        <div className="status-pill">Mor-beyaz eski düzen • Formül alanı zengin</div>
+      </section>
+
       <section className="hero">
         <div>
-          <div className="eyebrow">İnciLab</div>
-          <h1>Detaylı AR-GE Formülasyon Modülü</h1>
-          <p>
-            Faz faz üretim yöntemi, aktif/kimyasal görevleri, pH, viskozite,
-            renk, koku, görünüm ve ambalaj önerisiyle tam formül kartı oluşturur.
+          <p className="eyebrow">İnciLab Workspace</p>
+          <h1>Analiz et, formül oluştur, faz faz geliştir.</h1>
+          <p className="hero-text">
+            Eski sade İnciLab düzeni korunarak formülasyon alanı güçlendirildi:
+            artık hammaddelerin görevini, üretim fazlarını, pH, viskozite, renk,
+            koku ve beklenen görünümü birlikte verir.
           </p>
         </div>
 
         <div className="hero-card">
-          <span>Toplam Formül</span>
-          <strong>%{formatNumber(totalPercent)}</strong>
-          <small>
-            {Math.abs(totalPercent - 100) < 0.01
-              ? "Formül 100’e tamamlandı."
-              : "Formül yüzdesi kontrol edilmeli."}
-          </small>
+          <span>Aktif Modül</span>
+          <strong>Formülasyon</strong>
+          <small>100 g / ölçekli AR-GE kartı</small>
         </div>
       </section>
 
-      <section className="panel ask-panel no-print">
-        <label className="label">Formülasyon isteğini yaz</label>
-        <div className="ask-row">
-          <textarea
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Örn: Bariyer destekleyici nemlendirici krem istiyorum. Faz faz anlat, pH ve viskozite de yaz."
-          />
-          <button onClick={handleGenerateFromQuery}>Formülü Oluştur</button>
-        </div>
-        <p className="hint">
-          Şimdilik bu alan yerel akılla çalışıyor: “serum”, “jel temizleyici”,
-          “bariyer krem” gibi kelimelere göre formül kartını seçiyor.
-        </p>
-      </section>
-
-      <section className="control-grid no-print">
-        <div className="panel">
-          <label className="label">Ürün tipi</label>
-          <select
-            value={selectedFormulaId}
-            onChange={(event) => setSelectedFormulaId(event.target.value)}
-          >
-            <option value="barrierCream">Bariyer Destekleyici Krem</option>
-            <option value="gelCleanser">Nazik Jel Temizleyici</option>
-            <option value="serum">Nem & Aydınlık Serum</option>
-          </select>
-        </div>
-
-        <div className="panel">
-          <label className="label">Batch miktarı</label>
-          <div className="batch-row">
-            <input
-              type="range"
-              min="50"
-              max="1000"
-              step="50"
-              value={batchSize}
-              onChange={(event) => setBatchSize(Number(event.target.value))}
-            />
-            <strong>{batchSize} g</strong>
-          </div>
-        </div>
-
-        <div className="panel action-panel">
-          <button onClick={copyFormula}>Metni Kopyala</button>
-          <button className="ghost" onClick={printAsPdf}>
-            PDF / Print Al
-          </button>
-        </div>
-      </section>
-
-      <section className="formula-header">
-        <div>
-          <div className="eyebrow">AR-GE Formül Kartı</div>
-          <h2>{formula.title}</h2>
-          <p>{formula.subtitle}</p>
-        </div>
-        <div className="ph-badge">
-          <span>Hedef pH</span>
-          <strong>{formula.targetPh}</strong>
-        </div>
-      </section>
-
-      <section className="claim-card">
-        <strong>Hedef ürün iddiası</strong>
-        <p>{formula.claim}</p>
-      </section>
-
-      <nav className="tabs no-print">
-        <button
-          className={activeTab === "formula" ? "active" : ""}
-          onClick={() => setActiveTab("formula")}
-        >
-          Formül
-        </button>
-        <button
-          className={activeTab === "process" ? "active" : ""}
-          onClick={() => setActiveTab("process")}
-        >
-          Nasıl Yapılır?
-        </button>
-        <button
-          className={activeTab === "ingredients" ? "active" : ""}
-          onClick={() => setActiveTab("ingredients")}
-        >
-          Hammaddeler
-        </button>
-        <button
-          className={activeTab === "properties" ? "active" : ""}
-          onClick={() => setActiveTab("properties")}
-        >
-          Ürün Özellikleri
-        </button>
-      </nav>
-
-      {(activeTab === "formula" || showAll) && (
-        <section className="panel print-section">
-          <div className="section-title">
-            <div>
-              <h3>100 g / Ölçekli Formül</h3>
-              <p>
-                Yüzdeler sabit kalır, miktarlar seçtiğin batch değerine göre
-                otomatik hesaplanır.
-              </p>
-            </div>
-            <span className="mini-badge">Batch: {batchSize} g</span>
-          </div>
-
-          <div className="phase-list">
-            {phaseGroups.map((group) => (
-              <div className="phase-card" key={group.phase}>
-                <h4>{phaseName(group.phase)}</h4>
-                <div className="table-wrap">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Hammadde</th>
-                        <th>INCI</th>
-                        <th>%</th>
-                        <th>{batchSize} g için</th>
-                        <th>Görevi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {group.items.map((item) => {
-                        const amount = (item.percent * batchSize) / 100;
-                        return (
-                          <tr key={`${item.phase}-${item.name}`}>
-                            <td>{item.name}</td>
-                            <td>{item.inci}</td>
-                            <td>%{formatNumber(item.percent)}</td>
-                            <td>{formatNumber(amount)} g</td>
-                            <td>{item.role}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+      <section className="workspace">
+        <div className="left-column">
+          <section className="card no-print">
+            <div className="section-head">
+              <div>
+                <p className="mini-title">Analiz Sor</p>
+                <h2>Hammadde / INCI analizi</h2>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+            </div>
 
-      {(activeTab === "process" || showAll) && (
-        <section className="panel print-section">
-          <div className="section-title">
-            <div>
-              <h3>Faz Faz Nasıl Yapılır?</h3>
-              <p>Laboratuvar ölçekli üretim akışı.</p>
-            </div>
-          </div>
+            <textarea
+              value={analysisQuestion}
+              onChange={(event) => setAnalysisQuestion(event.target.value)}
+              placeholder="Örn: Niasinamid ne işe yarar? pH aralığı nasıl olmalı? Ksantan gam neden topaklanır?"
+              className="input-area"
+            />
 
-          <ol className="process-list">
-            {formula.process.map((step, index) => (
-              <li key={step}>
-                <span>{index + 1}</span>
-                <p>{step}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
+            <button type="button" className="primary-button" onClick={handleAnalysis}>
+              Analiz Et
+            </button>
+          </section>
 
-      {(activeTab === "ingredients" || showAll) && (
-        <section className="panel print-section">
-          <div className="section-title">
-            <div>
-              <h3>Aktifler ve Kimyasallar Ne İşe Yarar?</h3>
-              <p>Her hammaddenin formüldeki teknik ve duyusal görevi.</p>
-            </div>
-          </div>
+          <section className="card">
+            <div className="section-head">
+              <div>
+                <p className="mini-title">Formül Sor</p>
+                <h2>Zenginleştirilmiş formülasyon alanı</h2>
+              </div>
 
-          <div className="ingredient-grid">
-            {formula.ingredients.map((item) => (
-              <article className="ingredient-card" key={`${item.name}-${item.inci}`}>
-                <div>
-                  <span className="phase-dot">Faz {item.phase}</span>
-                  <h4>{item.name}</h4>
-                  <small>{item.inci}</small>
-                </div>
-                <p>
-                  <strong>Görevi:</strong> {item.role}
-                </p>
-                <p>{item.whatItDoes}</p>
-                <p className="note">
-                  <strong>Üretim notu:</strong> {item.processNote}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
+              <div className="percent-pill">
+                Toplam: %{formatNumber(totalPercent)}
+              </div>
+            </div>
 
-      {(activeTab === "properties" || showAll) && (
-        <section className="panel print-section">
-          <div className="section-title">
-            <div>
-              <h3>Beklenen Ürün Özellikleri</h3>
-              <p>pH, viskozite, renk, koku, görüntü ve ambalaj tahmini.</p>
-            </div>
-          </div>
+            <textarea
+              value={formulaQuestion}
+              onChange={(event) => setFormulaQuestion(event.target.value)}
+              placeholder="Örn: Bariyer destekleyici krem istiyorum. Faz faz anlat, aktiflerin ne işe yaradığını, pH, viskozite, renk, koku ve görünümü yaz."
+              className="input-area"
+            />
 
-          <div className="property-grid">
-            <div className="property-card">
-              <span>Görünüm</span>
-              <strong>{formula.expected.appearance}</strong>
-            </div>
-            <div className="property-card">
-              <span>Renk</span>
-              <strong>{formula.expected.color}</strong>
-            </div>
-            <div className="property-card">
-              <span>Koku</span>
-              <strong>{formula.expected.scent}</strong>
-            </div>
-            <div className="property-card">
-              <span>Viskozite</span>
-              <strong>{formula.expected.viscosity}</strong>
-            </div>
-            <div className="property-card">
-              <span>Doku / Hissiyat</span>
-              <strong>{formula.expected.texture}</strong>
-            </div>
-            <div className="property-card">
-              <span>pH</span>
-              <strong>{formula.expected.ph}</strong>
-            </div>
-            <div className="property-card">
-              <span>Ambalaj</span>
-              <strong>{formula.expected.packaging}</strong>
-            </div>
-            <div className="property-card">
-              <span>Stabilite</span>
-              <strong>{formula.expected.stability}</strong>
-            </div>
-          </div>
-        </section>
-      )}
+            <div className="form-row no-print">
+              <div>
+                <label>Ürün tipi</label>
+                <select
+                  value={selectedProduct}
+                  onChange={(event) =>
+                    setSelectedProduct(event.target.value as ProductType)
+                  }
+                >
+                  <option value="cream">Bariyer Destekleyici Krem</option>
+                  <option value="serum">Nem & Aydınlık Serum</option>
+                  <option value="cleanser">Nazik Jel Temizleyici</option>
+                </select>
+              </div>
 
-      <section className="warning-card print-section">
-        <h3>AR-GE Uyarısı</h3>
-        <ul>
-          {formula.cautions.map((warning) => (
-            <li key={warning}>{warning}</li>
-          ))}
-        </ul>
+              <div>
+                <label>Batch: {batchSize} g</label>
+                <input
+                  type="range"
+                  min={50}
+                  max={1000}
+                  step={50}
+                  value={batchSize}
+                  onChange={(event) => setBatchSize(Number(event.target.value))}
+                />
+              </div>
+            </div>
+
+            <div className="button-row no-print">
+              <button
+                type="button"
+                className="primary-button"
+                onClick={handleFormulaGenerate}
+              >
+                Formülü Oluştur
+              </button>
+              <button type="button" className="soft-button" onClick={copyFormulaText}>
+                Kopyala
+              </button>
+              <button type="button" className="soft-button" onClick={printPage}>
+                PDF / Yazdır
+              </button>
+            </div>
+          </section>
+
+          <section className="trend-card no-print">
+            <p className="mini-title">Trend Bileşenler</p>
+            <div className="chips">
+              <span>Niasinamid</span>
+              <span>Pantenol</span>
+              <span>Seramid</span>
+              <span>Betaine</span>
+              <span>Hyaluronik Asit</span>
+              <span>Azelaik Asit</span>
+            </div>
+          </section>
+        </div>
+
+        <aside className="right-column">
+          <section className="result-card no-print">
+            <p className="mini-title">Analiz Sonucu</p>
+            <p>{analysisAnswer}</p>
+          </section>
+
+          <section className="formula-card print-section">
+            <div className="formula-header">
+              <div>
+                <p className="mini-title">Detaylı AR-GE Formül Kartı</p>
+                <h2>{formula.title}</h2>
+                <p>{formula.shortDescription}</p>
+              </div>
+
+              <div className="ph-box">
+                <span>Hedef pH</span>
+                <strong>{formula.targetPh}</strong>
+              </div>
+            </div>
+
+            <div className="claim-box">
+              <strong>Hedef ürün iddiası</strong>
+              <p>{formula.claim}</p>
+            </div>
+
+            <nav className="tabs no-print">
+              <button
+                type="button"
+                className={activeFormulaTab === "formula" ? "active" : ""}
+                onClick={() => setActiveFormulaTab("formula")}
+              >
+                Formül
+              </button>
+              <button
+                type="button"
+                className={activeFormulaTab === "method" ? "active" : ""}
+                onClick={() => setActiveFormulaTab("method")}
+              >
+                Faz Faz Yapılış
+              </button>
+              <button
+                type="button"
+                className={activeFormulaTab === "ingredients" ? "active" : ""}
+                onClick={() => setActiveFormulaTab("ingredients")}
+              >
+                Hammaddeler
+              </button>
+              <button
+                type="button"
+                className={activeFormulaTab === "properties" ? "active" : ""}
+                onClick={() => setActiveFormulaTab("properties")}
+              >
+                Özellikler
+              </button>
+            </nav>
+
+            {activeFormulaTab === "formula" && (
+              <div className="phase-stack">
+                {groupedIngredients.map((group) => (
+                  <div className="phase-box" key={group.phase}>
+                    <h3>{group.title}</h3>
+
+                    <div className="table-wrap">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Hammadde</th>
+                            <th>INCI</th>
+                            <th>%</th>
+                            <th>{batchSize} g için</th>
+                            <th>Görev</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {group.items.map((item) => {
+                            const amount = (item.percent * batchSize) / 100;
+
+                            return (
+                              <tr key={`${item.phase}-${item.name}`}>
+                                <td>{item.name}</td>
+                                <td>{item.inci}</td>
+                                <td>%{formatNumber(item.percent)}</td>
+                                <td>{formatNumber(amount)} g</td>
+                                <td>{item.role}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeFormulaTab === "method" && (
+              <ol className="method-list">
+                {formula.method.map((step, index) => (
+                  <li key={step}>
+                    <span>{index + 1}</span>
+                    <p>{step}</p>
+                  </li>
+                ))}
+              </ol>
+            )}
+
+            {activeFormulaTab === "ingredients" && (
+              <div className="ingredient-grid">
+                {formula.ingredients.map((item) => (
+                  <article className="ingredient-card" key={`${item.phase}-${item.name}`}>
+                    <span>Faz {item.phase}</span>
+                    <h3>{item.name}</h3>
+                    <small>{item.inci}</small>
+                    <p>
+                      <b>Görevi:</b> {item.role}
+                    </p>
+                    <p>{item.detail}</p>
+                    <div className="note">
+                      <b>Üretim notu:</b> {item.processNote}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+
+            {activeFormulaTab === "properties" && (
+              <div className="property-grid">
+                <InfoCard title="Ürün tipi" value={formula.productType} />
+                <InfoCard title="Beklenen pH" value={formula.targetPh} />
+                <InfoCard title="Viskozite" value={formula.expectedViscosity} />
+                <InfoCard title="Renk" value={formula.expectedColor} />
+                <InfoCard title="Görünüm" value={formula.expectedAppearance} />
+                <InfoCard title="Koku" value={formula.expectedScent} />
+                <InfoCard title="Doku / Hissiyat" value={formula.expectedTexture} />
+                <InfoCard title="Ambalaj" value={formula.packaging} />
+              </div>
+            )}
+
+            <div className="warning-box">
+              <strong>AR-GE Uyarısı</strong>
+              <p>{formula.warning}</p>
+            </div>
+          </section>
+        </aside>
       </section>
-
-      <div className="show-all no-print">
-        <button onClick={() => setShowAll((value) => !value)}>
-          {showAll ? "Sekmeli Görünüme Dön" : "Tümünü Gör"}
-        </button>
-      </div>
 
       <style>{`
         * {
@@ -904,88 +957,129 @@ export default function InciLabPage() {
           margin: 0;
           background:
             radial-gradient(circle at top left, rgba(168, 85, 247, 0.18), transparent 34%),
-            radial-gradient(circle at top right, rgba(236, 72, 153, 0.12), transparent 30%),
-            #fbf8ff;
-          color: #261536;
+            radial-gradient(circle at top right, rgba(236, 72, 153, 0.12), transparent 28%),
+            linear-gradient(180deg, #fdfbff 0%, #faf5ff 48%, #ffffff 100%);
+          color: #241233;
         }
 
         .incilab-page {
           min-height: 100vh;
-          padding: 32px;
+          padding: 24px;
           font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .topbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+
+        .brand {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .brand-mark {
+          width: 44px;
+          height: 44px;
+          border-radius: 16px;
+          display: grid;
+          place-items: center;
+          color: white;
+          font-weight: 900;
+          background: linear-gradient(135deg, #7e22ce, #c026d3, #ec4899);
+          box-shadow: 0 16px 34px rgba(126, 34, 206, 0.22);
+        }
+
+        .brand strong {
+          display: block;
+          font-size: 18px;
+          color: #2b1244;
+        }
+
+        .brand span {
+          display: block;
+          font-size: 13px;
+          color: #7c6a8a;
+        }
+
+        .status-pill,
+        .percent-pill {
+          width: fit-content;
+          border-radius: 999px;
+          padding: 10px 14px;
+          background: rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(126, 34, 206, 0.13);
+          color: #7e22ce;
+          font-size: 13px;
+          font-weight: 800;
         }
 
         .hero {
           display: grid;
-          grid-template-columns: 1fr 260px;
-          gap: 20px;
-          align-items: stretch;
-          margin-bottom: 22px;
+          grid-template-columns: minmax(0, 1fr) 280px;
+          gap: 18px;
+          margin-bottom: 20px;
         }
 
-        .eyebrow {
-          display: inline-flex;
-          width: fit-content;
-          padding: 7px 12px;
-          border-radius: 999px;
-          background: rgba(126, 34, 206, 0.1);
-          color: #7e22ce;
-          font-size: 13px;
-          font-weight: 800;
-          letter-spacing: 0.04em;
+        .eyebrow,
+        .mini-title {
+          margin: 0 0 8px;
+          color: #8b5cf6;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: 0.16em;
           text-transform: uppercase;
-          margin-bottom: 12px;
         }
 
-        h1, h2, h3, h4, p {
+        h1,
+        h2,
+        h3,
+        p {
           margin-top: 0;
         }
 
         h1 {
-          font-size: clamp(34px, 5vw, 62px);
-          line-height: 0.95;
-          letter-spacing: -0.06em;
-          margin-bottom: 16px;
+          max-width: 860px;
+          margin-bottom: 14px;
           color: #2b1244;
+          font-size: clamp(38px, 5vw, 68px);
+          line-height: 0.95;
+          letter-spacing: -0.065em;
         }
 
         h2 {
-          font-size: clamp(26px, 3vw, 42px);
-          letter-spacing: -0.04em;
-          margin-bottom: 10px;
+          margin-bottom: 8px;
           color: #2b1244;
+          font-size: 24px;
+          letter-spacing: -0.035em;
         }
 
         h3 {
-          font-size: 23px;
-          letter-spacing: -0.03em;
           margin-bottom: 8px;
           color: #32164f;
+          font-size: 17px;
         }
 
-        h4 {
-          margin-bottom: 8px;
-          color: #32164f;
-        }
-
-        .hero p,
-        .formula-header p,
-        .section-title p,
-        .hint {
+        .hero-text {
+          max-width: 850px;
           color: #6d5b7b;
-          line-height: 1.6;
+          line-height: 1.7;
         }
 
         .hero-card,
-        .panel,
-        .claim-card,
-        .warning-card,
-        .ph-badge {
+        .card,
+        .result-card,
+        .formula-card,
+        .trend-card {
           background: rgba(255, 255, 255, 0.82);
-          border: 1px solid rgba(126, 34, 206, 0.14);
-          border-radius: 28px;
-          box-shadow: 0 20px 60px rgba(88, 28, 135, 0.09);
-          backdrop-filter: blur(14px);
+          border: 1px solid rgba(126, 34, 206, 0.13);
+          border-radius: 30px;
+          box-shadow: 0 20px 60px rgba(88, 28, 135, 0.08);
+          backdrop-filter: blur(16px);
         }
 
         .hero-card {
@@ -993,154 +1087,224 @@ export default function InciLabPage() {
           display: flex;
           flex-direction: column;
           justify-content: center;
-          gap: 8px;
+          min-height: 180px;
         }
 
-        .hero-card span,
-        .ph-badge span,
-        .property-card span,
-        .label {
+        .hero-card span {
           color: #7c6a8a;
           font-size: 13px;
           font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
         }
 
         .hero-card strong {
-          font-size: 44px;
+          margin: 6px 0;
           color: #7e22ce;
-          letter-spacing: -0.05em;
+          font-size: 34px;
+          letter-spacing: -0.04em;
         }
 
         .hero-card small {
-          color: #6d5b7b;
+          color: #7c6a8a;
         }
 
-        .panel {
+        .workspace {
+          display: grid;
+          grid-template-columns: minmax(340px, 0.82fr) minmax(0, 1.18fr);
+          gap: 18px;
+          align-items: start;
+        }
+
+        .left-column,
+        .right-column {
+          display: grid;
+          gap: 18px;
+        }
+
+        .card,
+        .result-card,
+        .formula-card,
+        .trend-card {
           padding: 22px;
         }
 
-        .ask-panel {
-          margin-bottom: 18px;
+        .section-head,
+        .formula-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 14px;
+          margin-bottom: 16px;
         }
 
-        .ask-row {
-          display: grid;
-          grid-template-columns: 1fr 180px;
-          gap: 12px;
-          margin-top: 10px;
-        }
-
-        textarea,
-        select,
-        input[type="range"] {
+        .input-area {
           width: 100%;
-        }
-
-        textarea,
-        select {
-          border: 1px solid rgba(126, 34, 206, 0.18);
-          background: #fff;
-          border-radius: 18px;
-          padding: 15px 16px;
-          font: inherit;
-          color: #2b1244;
-          outline: none;
-        }
-
-        textarea {
-          min-height: 86px;
+          min-height: 104px;
           resize: vertical;
+          border: 1px solid rgba(126, 34, 206, 0.16);
+          outline: none;
+          border-radius: 22px;
+          background: white;
+          padding: 14px 15px;
+          color: #2b1244;
+          font: inherit;
+          line-height: 1.55;
         }
 
-        textarea:focus,
+        .input-area:focus,
         select:focus {
-          border-color: rgba(126, 34, 206, 0.55);
+          border-color: rgba(126, 34, 206, 0.48);
           box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.12);
         }
 
-        button {
+        .primary-button,
+        .soft-button,
+        .tabs button {
           border: 0;
-          border-radius: 18px;
-          padding: 14px 18px;
-          background: linear-gradient(135deg, #7e22ce, #c026d3, #ec4899);
-          color: white;
-          font-weight: 900;
           cursor: pointer;
-          box-shadow: 0 14px 30px rgba(126, 34, 206, 0.22);
+          font: inherit;
           transition: transform 0.18s ease, box-shadow 0.18s ease;
         }
 
-        button:hover {
+        .primary-button {
+          margin-top: 12px;
+          width: 100%;
+          border-radius: 18px;
+          padding: 14px 16px;
+          color: white;
+          font-weight: 900;
+          background: linear-gradient(135deg, #7e22ce, #c026d3, #ec4899);
+          box-shadow: 0 16px 34px rgba(126, 34, 206, 0.2);
+        }
+
+        .primary-button:hover,
+        .soft-button:hover,
+        .tabs button:hover {
           transform: translateY(-1px);
-          box-shadow: 0 18px 38px rgba(126, 34, 206, 0.28);
         }
 
-        button.ghost {
-          background: white;
-          color: #7e22ce;
-          border: 1px solid rgba(126, 34, 206, 0.18);
-          box-shadow: none;
-        }
-
-        .control-grid {
+        .form-row {
           display: grid;
-          grid-template-columns: 1fr 1fr 280px;
-          gap: 16px;
-          margin-bottom: 22px;
-        }
-
-        .batch-row {
-          display: grid;
-          grid-template-columns: 1fr 70px;
-          align-items: center;
+          grid-template-columns: 1fr 1fr;
           gap: 12px;
           margin-top: 14px;
         }
 
-        .batch-row strong {
-          color: #7e22ce;
-          font-size: 18px;
+        label {
+          display: block;
+          margin-bottom: 7px;
+          color: #7c6a8a;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
         }
 
-        .action-panel {
+        select {
+          width: 100%;
+          border: 1px solid rgba(126, 34, 206, 0.16);
+          outline: none;
+          border-radius: 18px;
+          background: white;
+          padding: 13px 14px;
+          color: #2b1244;
+          font: inherit;
+        }
+
+        input[type="range"] {
+          width: 100%;
+          accent-color: #8b5cf6;
+        }
+
+        .button-row {
           display: grid;
-          grid-template-columns: 1fr;
+          grid-template-columns: 1fr 110px 110px;
           gap: 10px;
+          margin-top: 12px;
         }
 
-        .formula-header {
-          display: grid;
-          grid-template-columns: 1fr 210px;
-          gap: 18px;
-          align-items: stretch;
-          margin: 24px 0 16px;
+        .button-row .primary-button {
+          margin-top: 0;
         }
 
-        .ph-badge {
-          padding: 22px;
+        .soft-button {
+          border-radius: 18px;
+          padding: 14px 12px;
+          background: #f5edff;
+          color: #7e22ce;
+          font-weight: 900;
+        }
+
+        .trend-card {
+          background: rgba(255, 255, 255, 0.68);
+        }
+
+        .chips {
           display: flex;
-          flex-direction: column;
-          justify-content: center;
+          flex-wrap: wrap;
+          gap: 8px;
         }
 
-        .ph-badge strong {
-          font-size: 28px;
+        .chips span {
+          border-radius: 999px;
+          background: #f3e8ff;
+          color: #7e22ce;
+          padding: 9px 12px;
+          font-size: 13px;
+          font-weight: 800;
+        }
+
+        .result-card p:last-child {
+          margin-bottom: 0;
+          color: #4b315f;
+          line-height: 1.7;
+        }
+
+        .formula-card {
+          overflow: hidden;
+        }
+
+        .formula-header p {
+          margin-bottom: 0;
+          color: #6d5b7b;
+          line-height: 1.6;
+        }
+
+        .ph-box {
+          min-width: 132px;
+          border-radius: 22px;
+          background: #f3e8ff;
+          padding: 14px;
+          color: #7e22ce;
+          text-align: center;
+        }
+
+        .ph-box span {
+          display: block;
+          font-size: 12px;
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+
+        .ph-box strong {
+          display: block;
+          margin-top: 4px;
+          font-size: 20px;
+        }
+
+        .claim-box {
+          margin: 14px 0;
+          border-left: 5px solid #a855f7;
+          border-radius: 22px;
+          background: linear-gradient(135deg, #faf5ff, #fff);
+          padding: 16px;
+        }
+
+        .claim-box strong {
           color: #7e22ce;
         }
 
-        .claim-card {
-          padding: 22px;
-          margin-bottom: 16px;
-          border-left: 6px solid #a855f7;
-        }
-
-        .claim-card strong {
-          color: #7e22ce;
-        }
-
-        .claim-card p {
+        .claim-box p {
           margin: 8px 0 0;
           color: #4b315f;
           line-height: 1.6;
@@ -1149,54 +1313,42 @@ export default function InciLabPage() {
         .tabs {
           display: flex;
           flex-wrap: wrap;
-          gap: 10px;
-          margin-bottom: 16px;
+          gap: 8px;
+          margin: 16px 0;
         }
 
         .tabs button {
-          background: white;
+          border-radius: 999px;
+          padding: 10px 13px;
+          background: #f3e8ff;
           color: #7e22ce;
-          border: 1px solid rgba(126, 34, 206, 0.16);
-          box-shadow: none;
+          font-size: 13px;
+          font-weight: 900;
         }
 
         .tabs button.active {
           color: white;
           background: linear-gradient(135deg, #7e22ce, #c026d3);
-          box-shadow: 0 14px 30px rgba(126, 34, 206, 0.22);
+          box-shadow: 0 12px 25px rgba(126, 34, 206, 0.18);
         }
 
-        .section-title {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 16px;
-          margin-bottom: 18px;
-        }
-
-        .mini-badge,
-        .phase-dot {
-          display: inline-flex;
-          align-items: center;
-          width: fit-content;
-          padding: 7px 11px;
-          border-radius: 999px;
-          background: rgba(126, 34, 206, 0.1);
-          color: #7e22ce;
-          font-size: 12px;
-          font-weight: 900;
-        }
-
-        .phase-list {
+        .phase-stack {
           display: grid;
-          gap: 18px;
+          gap: 14px;
         }
 
-        .phase-card {
+        .phase-box {
+          overflow: hidden;
           border: 1px solid rgba(126, 34, 206, 0.12);
-          border-radius: 22px;
-          padding: 18px;
-          background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(250,245,255,0.78));
+          border-radius: 24px;
+          background: #fff;
+        }
+
+        .phase-box h3 {
+          margin: 0;
+          background: #f3e8ff;
+          color: #6b21a8;
+          padding: 13px 15px;
         }
 
         .table-wrap {
@@ -1205,141 +1357,168 @@ export default function InciLabPage() {
 
         table {
           width: 100%;
-          border-collapse: collapse;
           min-width: 760px;
+          border-collapse: collapse;
         }
 
         th,
         td {
+          border-bottom: 1px solid rgba(126, 34, 206, 0.09);
+          padding: 12px;
           text-align: left;
-          padding: 13px 12px;
-          border-bottom: 1px solid rgba(126, 34, 206, 0.1);
           vertical-align: top;
-          font-size: 14px;
+          font-size: 13px;
         }
 
         th {
+          background: rgba(250, 245, 255, 0.65);
           color: #7e22ce;
-          background: rgba(126, 34, 206, 0.06);
-          font-size: 12px;
+          font-size: 11px;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
         }
 
         td {
           color: #432457;
+          line-height: 1.45;
         }
 
-        .process-list {
-          list-style: none;
-          padding: 0;
+        .method-list {
+          display: grid;
+          gap: 10px;
           margin: 0;
-          display: grid;
-          gap: 12px;
+          padding: 0;
+          list-style: none;
         }
 
-        .process-list li {
+        .method-list li {
           display: grid;
-          grid-template-columns: 42px 1fr;
+          grid-template-columns: 38px 1fr;
           gap: 12px;
-          align-items: start;
-          padding: 15px;
           border-radius: 20px;
-          background: rgba(126, 34, 206, 0.06);
+          background: #faf5ff;
+          padding: 13px;
         }
 
-        .process-list span {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
+        .method-list span {
+          width: 34px;
+          height: 34px;
           display: grid;
           place-items: center;
-          background: #7e22ce;
+          border-radius: 50%;
           color: white;
+          background: #8b5cf6;
           font-weight: 900;
         }
 
-        .process-list p {
-          margin: 6px 0 0;
+        .method-list p {
+          margin: 5px 0 0;
           color: #432457;
-          line-height: 1.55;
+          line-height: 1.6;
         }
 
         .ingredient-grid,
         .property-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 14px;
+          gap: 12px;
         }
 
         .ingredient-card,
-        .property-card {
-          padding: 18px;
-          border-radius: 22px;
-          background: rgba(250, 245, 255, 0.78);
+        .info-card {
           border: 1px solid rgba(126, 34, 206, 0.12);
+          border-radius: 24px;
+          background: #fff;
+          padding: 16px;
+        }
+
+        .ingredient-card span {
+          display: inline-flex;
+          border-radius: 999px;
+          background: #f3e8ff;
+          color: #7e22ce;
+          padding: 6px 10px;
+          font-size: 12px;
+          font-weight: 900;
+        }
+
+        .ingredient-card h3 {
+          margin: 12px 0 2px;
         }
 
         .ingredient-card small {
           display: block;
           color: #7c6a8a;
-          margin-bottom: 12px;
+          margin-bottom: 10px;
         }
 
-        .ingredient-card p,
-        .property-card strong {
-          color: #432457;
+        .ingredient-card p {
+          color: #4b315f;
+          line-height: 1.6;
+        }
+
+        .note {
+          border-radius: 18px;
+          background: #faf5ff;
+          padding: 12px;
+          color: #4b315f;
           line-height: 1.55;
         }
 
-        .ingredient-card .note {
-          background: white;
-          border-radius: 16px;
-          padding: 12px;
-          margin-bottom: 0;
+        .info-card span {
+          display: block;
+          margin-bottom: 8px;
+          color: #8b5cf6;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
         }
 
-        .property-card {
-          display: grid;
-          gap: 8px;
+        .info-card p {
+          margin: 0;
+          color: #432457;
+          line-height: 1.6;
         }
 
-        .property-card strong {
-          font-size: 15px;
-        }
-
-        .warning-card {
+        .warning-box {
           margin-top: 16px;
-          padding: 22px;
-          background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(253, 242, 248, 0.78));
-          border-color: rgba(236, 72, 153, 0.18);
+          border: 1px solid rgba(245, 158, 11, 0.2);
+          border-radius: 24px;
+          background: #fffbeb;
+          padding: 16px;
+          color: #7c4a03;
         }
 
-        .warning-card ul {
-          margin: 10px 0 0;
-          padding-left: 20px;
-          color: #5b3150;
-          line-height: 1.7;
+        .warning-box p {
+          margin: 8px 0 0;
+          line-height: 1.6;
         }
 
-        .show-all {
-          display: flex;
-          justify-content: center;
-          margin: 20px 0 8px;
-        }
-
-        @media (max-width: 900px) {
-          .incilab-page {
-            padding: 20px;
-          }
-
-          .hero,
-          .control-grid,
-          .formula-header,
-          .ask-row {
+        @media (max-width: 1050px) {
+          .workspace,
+          .hero {
             grid-template-columns: 1fr;
           }
 
+          .hero-card {
+            min-height: auto;
+          }
+        }
+
+        @media (max-width: 720px) {
+          .incilab-page {
+            padding: 16px;
+          }
+
+          .topbar,
+          .section-head,
+          .formula-header {
+            flex-direction: column;
+          }
+
+          .form-row,
+          .button-row,
           .ingredient-grid,
           .property-grid {
             grid-template-columns: 1fr;
@@ -1357,55 +1536,57 @@ export default function InciLabPage() {
 
           .incilab-page {
             padding: 0;
-            color: #111;
           }
 
           .no-print,
-          .tabs,
-          .show-all {
+          .topbar,
+          .hero,
+          .left-column,
+          .result-card,
+          .tabs {
             display: none !important;
           }
 
-          .hero,
-          .formula-header {
-            grid-template-columns: 1fr;
+          .workspace {
+            display: block;
           }
 
-          .hero-card,
-          .panel,
-          .claim-card,
-          .warning-card,
-          .ph-badge,
-          .phase-card,
-          .ingredient-card,
-          .property-card {
+          .formula-card {
             box-shadow: none;
-            border: 1px solid #ddd;
-            background: white;
-            break-inside: avoid;
+            border: 0;
+            padding: 0;
           }
 
-          .print-section {
-            margin-bottom: 16px;
+          .phase-box,
+          .ingredient-card,
+          .info-card,
+          .claim-box,
+          .warning-box,
+          .ph-box {
             break-inside: avoid;
-          }
-
-          button {
-            display: none;
+            box-shadow: none;
           }
 
           table {
             min-width: 0;
-            font-size: 11px;
           }
 
           th,
           td {
-            font-size: 11px;
+            font-size: 10px;
             padding: 7px;
           }
         }
       `}</style>
     </main>
+  );
+}
+
+function InfoCard({ title, value }: { title: string; value: string }) {
+  return (
+    <div className="info-card">
+      <span>{title}</span>
+      <p>{value}</p>
+    </div>
   );
 }
