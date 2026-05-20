@@ -84,10 +84,30 @@ const formulas: Record<FormulaKey, Formula> = {
         name: "Sulu Faz",
         percent: 65,
         items: [
-          { name: "Deiyonize Su", inci: "Aqua", percent: 55.6, functionName: "Çözücü" },
-          { name: "Gliserin", inci: "Glycerin", percent: 5, functionName: "Nemlendirici" },
-          { name: "Pentylene Glycol", inci: "Pentylene Glycol", percent: 3, functionName: "Nemlendirici / Çözücü" },
-          { name: "Panthenol", inci: "Panthenol", percent: 1.4, functionName: "Nemlendirici / Yatıştırıcı" },
+          {
+            name: "Deiyonize Su",
+            inci: "Aqua",
+            percent: 55.6,
+            functionName: "Çözücü",
+          },
+          {
+            name: "Gliserin",
+            inci: "Glycerin",
+            percent: 5,
+            functionName: "Nemlendirici",
+          },
+          {
+            name: "Pentylene Glycol",
+            inci: "Pentylene Glycol",
+            percent: 3,
+            functionName: "Nemlendirici / Çözücü",
+          },
+          {
+            name: "Panthenol",
+            inci: "Panthenol",
+            percent: 1.4,
+            functionName: "Nemlendirici / Yatıştırıcı",
+          },
         ],
       },
       {
@@ -95,10 +115,30 @@ const formulas: Record<FormulaKey, Formula> = {
         name: "Aktif Faz",
         percent: 20,
         items: [
-          { name: "Niacinamide", inci: "Niacinamide", percent: 5, functionName: "Aydınlatıcı / Sebum Dengesi" },
-          { name: "Sodium Hyaluronate", inci: "Sodium Hyaluronate", percent: 0.3, functionName: "Nemlendirici" },
-          { name: "Allantoin", inci: "Allantoin", percent: 0.2, functionName: "Yatıştırıcı" },
-          { name: "Beta-Glucan", inci: "Beta-Glucan", percent: 1, functionName: "Cilt Bariyeri Desteği" },
+          {
+            name: "Niacinamide",
+            inci: "Niacinamide",
+            percent: 5,
+            functionName: "Aydınlatıcı / Sebum Dengesi",
+          },
+          {
+            name: "Sodium Hyaluronate",
+            inci: "Sodium Hyaluronate",
+            percent: 0.3,
+            functionName: "Nemlendirici",
+          },
+          {
+            name: "Allantoin",
+            inci: "Allantoin",
+            percent: 0.2,
+            functionName: "Yatıştırıcı",
+          },
+          {
+            name: "Beta-Glucan",
+            inci: "Beta-Glucan",
+            percent: 1,
+            functionName: "Cilt Bariyeri Desteği",
+          },
         ],
       },
       {
@@ -106,9 +146,24 @@ const formulas: Record<FormulaKey, Formula> = {
         name: "Destek Fazı",
         percent: 10,
         items: [
-          { name: "Ectoin", inci: "Ectoin", percent: 0.5, functionName: "Çevresel Stres Desteği" },
-          { name: "Trehalose", inci: "Trehalose", percent: 2, functionName: "Nem / Osmoprotektif" },
-          { name: "Preservative Blend", inci: "Phenoxyethanol, Ethylhexylglycerin", percent: 0.9, functionName: "Koruyucu" },
+          {
+            name: "Ectoin",
+            inci: "Ectoin",
+            percent: 0.5,
+            functionName: "Çevresel Stres Desteği",
+          },
+          {
+            name: "Trehalose",
+            inci: "Trehalose",
+            percent: 2,
+            functionName: "Nem / Osmoprotektif",
+          },
+          {
+            name: "Preservative Blend",
+            inci: "Phenoxyethanol, Ethylhexylglycerin",
+            percent: 0.9,
+            functionName: "Koruyucu",
+          },
         ],
       },
       {
@@ -116,8 +171,18 @@ const formulas: Record<FormulaKey, Formula> = {
         name: "Katkı / Ayarlayıcı",
         percent: 5,
         items: [
-          { name: "Citric Acid Solution", inci: "Citric Acid, Aqua", percent: 0.3, functionName: "pH Düzenleyici" },
-          { name: "Sodium Citrate", inci: "Sodium Citrate", percent: 0.2, functionName: "Tamponlayıcı" },
+          {
+            name: "Citric Acid Solution",
+            inci: "Citric Acid, Aqua",
+            percent: 0.3,
+            functionName: "pH Düzenleyici",
+          },
+          {
+            name: "Sodium Citrate",
+            inci: "Sodium Citrate",
+            percent: 0.2,
+            functionName: "Tamponlayıcı",
+          },
         ],
       },
     ],
@@ -148,9 +213,24 @@ const formulas: Record<FormulaKey, Formula> = {
         name: "Sulu Faz",
         percent: 68,
         items: [
-          { name: "Deiyonize Su", inci: "Aqua", percent: 58, functionName: "Çözücü" },
-          { name: "Gliserin", inci: "Glycerin", percent: 4, functionName: "Nem desteği" },
-          { name: "Hydroxyethylcellulose", inci: "Hydroxyethylcellulose", percent: 0.8, functionName: "Jel kıvam verici" },
+          {
+            name: "Deiyonize Su",
+            inci: "Aqua",
+            percent: 58,
+            functionName: "Çözücü",
+          },
+          {
+            name: "Gliserin",
+            inci: "Glycerin",
+            percent: 4,
+            functionName: "Nem desteği",
+          },
+          {
+            name: "Hydroxyethylcellulose",
+            inci: "Hydroxyethylcellulose",
+            percent: 0.8,
+            functionName: "Jel kıvam verici",
+          },
         ],
       },
       {
@@ -158,9 +238,24 @@ const formulas: Record<FormulaKey, Formula> = {
         name: "Yüzey Aktif Faz",
         percent: 24,
         items: [
-          { name: "Coco-Glucoside", inci: "Coco-Glucoside", percent: 7, functionName: "Nazik temizleyici" },
-          { name: "Cocamidopropyl Betaine", inci: "Cocamidopropyl Betaine", percent: 10, functionName: "Köpük destekleyici" },
-          { name: "Decyl Glucoside", inci: "Decyl Glucoside", percent: 5, functionName: "Nazik yüzey aktif" },
+          {
+            name: "Coco-Glucoside",
+            inci: "Coco-Glucoside",
+            percent: 7,
+            functionName: "Nazik temizleyici",
+          },
+          {
+            name: "Cocamidopropyl Betaine",
+            inci: "Cocamidopropyl Betaine",
+            percent: 10,
+            functionName: "Köpük destekleyici",
+          },
+          {
+            name: "Decyl Glucoside",
+            inci: "Decyl Glucoside",
+            percent: 5,
+            functionName: "Nazik yüzey aktif",
+          },
         ],
       },
       {
@@ -168,9 +263,24 @@ const formulas: Record<FormulaKey, Formula> = {
         name: "Aktif Destek",
         percent: 5,
         items: [
-          { name: "Panthenol", inci: "Panthenol", percent: 1, functionName: "Yatıştırıcı" },
-          { name: "Allantoin", inci: "Allantoin", percent: 0.2, functionName: "Konfor desteği" },
-          { name: "Betaine", inci: "Betaine", percent: 2, functionName: "Nem desteği" },
+          {
+            name: "Panthenol",
+            inci: "Panthenol",
+            percent: 1,
+            functionName: "Yatıştırıcı",
+          },
+          {
+            name: "Allantoin",
+            inci: "Allantoin",
+            percent: 0.2,
+            functionName: "Konfor desteği",
+          },
+          {
+            name: "Betaine",
+            inci: "Betaine",
+            percent: 2,
+            functionName: "Nem desteği",
+          },
         ],
       },
       {
@@ -178,8 +288,18 @@ const formulas: Record<FormulaKey, Formula> = {
         name: "Koruma / pH",
         percent: 3,
         items: [
-          { name: "Koruyucu Sistem", inci: "Phenoxyethanol, Ethylhexylglycerin", percent: 0.9, functionName: "Koruyucu" },
-          { name: "Citric Acid", inci: "Citric Acid", percent: 0.2, functionName: "pH Ayarı" },
+          {
+            name: "Koruyucu Sistem",
+            inci: "Phenoxyethanol, Ethylhexylglycerin",
+            percent: 0.9,
+            functionName: "Koruyucu",
+          },
+          {
+            name: "Citric Acid",
+            inci: "Citric Acid",
+            percent: 0.2,
+            functionName: "pH Ayarı",
+          },
         ],
       },
     ],
@@ -209,9 +329,24 @@ const formulas: Record<FormulaKey, Formula> = {
         name: "Su Fazı",
         percent: 70,
         items: [
-          { name: "Deiyonize Su", inci: "Aqua", percent: 62, functionName: "Çözücü" },
-          { name: "Gliserin", inci: "Glycerin", percent: 4, functionName: "Nemlendirici" },
-          { name: "Xanthan Gum", inci: "Xanthan Gum", percent: 0.3, functionName: "Kıvam / Stabilite" },
+          {
+            name: "Deiyonize Su",
+            inci: "Aqua",
+            percent: 62,
+            functionName: "Çözücü",
+          },
+          {
+            name: "Gliserin",
+            inci: "Glycerin",
+            percent: 4,
+            functionName: "Nemlendirici",
+          },
+          {
+            name: "Xanthan Gum",
+            inci: "Xanthan Gum",
+            percent: 0.3,
+            functionName: "Kıvam / Stabilite",
+          },
         ],
       },
       {
@@ -219,9 +354,24 @@ const formulas: Record<FormulaKey, Formula> = {
         name: "Yağ Fazı",
         percent: 20,
         items: [
-          { name: "Caprylic/Capric Triglyceride", inci: "Caprylic/Capric Triglyceride", percent: 6, functionName: "Yumuşatıcı" },
-          { name: "Cetearyl Alcohol", inci: "Cetearyl Alcohol", percent: 3, functionName: "Kıvam Verici" },
-          { name: "Glyceryl Stearate Citrate", inci: "Glyceryl Stearate Citrate", percent: 2.5, functionName: "Emülgatör" },
+          {
+            name: "Caprylic/Capric Triglyceride",
+            inci: "Caprylic/Capric Triglyceride",
+            percent: 6,
+            functionName: "Yumuşatıcı",
+          },
+          {
+            name: "Cetearyl Alcohol",
+            inci: "Cetearyl Alcohol",
+            percent: 3,
+            functionName: "Kıvam Verici",
+          },
+          {
+            name: "Glyceryl Stearate Citrate",
+            inci: "Glyceryl Stearate Citrate",
+            percent: 2.5,
+            functionName: "Emülgatör",
+          },
         ],
       },
       {
@@ -229,9 +379,24 @@ const formulas: Record<FormulaKey, Formula> = {
         name: "Aktif Faz",
         percent: 7,
         items: [
-          { name: "Niacinamide", inci: "Niacinamide", percent: 4, functionName: "Bariyer / Ton Desteği" },
-          { name: "Panthenol", inci: "Panthenol", percent: 2, functionName: "Yatıştırıcı" },
-          { name: "Ceramide Complex", inci: "Ceramide NP, AP, EOP", percent: 0.5, functionName: "Bariyer Desteği" },
+          {
+            name: "Niacinamide",
+            inci: "Niacinamide",
+            percent: 4,
+            functionName: "Bariyer / Ton Desteği",
+          },
+          {
+            name: "Panthenol",
+            inci: "Panthenol",
+            percent: 2,
+            functionName: "Yatıştırıcı",
+          },
+          {
+            name: "Ceramide Complex",
+            inci: "Ceramide NP, AP, EOP",
+            percent: 0.5,
+            functionName: "Bariyer Desteği",
+          },
         ],
       },
       {
@@ -239,8 +404,18 @@ const formulas: Record<FormulaKey, Formula> = {
         name: "Soğuk Faz",
         percent: 3,
         items: [
-          { name: "Koruyucu Sistem", inci: "Phenoxyethanol, Ethylhexylglycerin", percent: 0.9, functionName: "Koruyucu" },
-          { name: "pH Ayarlayıcı", inci: "Citric Acid / Sodium Hydroxide", percent: 0.2, functionName: "pH Ayarı" },
+          {
+            name: "Koruyucu Sistem",
+            inci: "Phenoxyethanol, Ethylhexylglycerin",
+            percent: 0.9,
+            functionName: "Koruyucu",
+          },
+          {
+            name: "pH Ayarlayıcı",
+            inci: "Citric Acid / Sodium Hydroxide",
+            percent: 0.2,
+            functionName: "pH Ayarı",
+          },
         ],
       },
     ],
@@ -259,15 +434,19 @@ const formulas: Record<FormulaKey, Formula> = {
 
 const inciData: Record<string, string> = {
   niacinamide:
-    "Niacinamide; bariyer desteği, ton eşitsizliği görünümü ve sebum dengesi için kullanılan çok yönlü bir aktif bileşendir.",
+    "Niacinamide / Niasinamid; bariyer desteği, ton eşitsizliği görünümü ve sebum dengesi için kullanılan çok yönlü bir aktif bileşendir. Genelde %2-5 aralığı konforlu çalışır; bazı serumlarda %10'a kadar çıkılabilir ama tolerans ve stabilite testi gerekir.",
+  niasinamid:
+    "Niasinamid; bariyer desteği, ton eşitsizliği görünümü ve sebum dengesi için kullanılan çok yönlü bir aktif bileşendir. Genelde %2-5 aralığı konforlu çalışır; hassas ciltte %2-4 daha mantıklıdır.",
   panthenol:
-    "Panthenol; nem, yatıştırıcı etki ve cilt konforu için kullanılan provitamin B5 türevidir.",
+    "Panthenol / Pantenol; nem, yatıştırıcı etki ve cilt konforu için kullanılan provitamin B5 türevidir. Genelde %0.5-5 aralığında kullanılır.",
+  pantenol:
+    "Pantenol; nem, yatıştırıcı etki ve cilt konforu için kullanılan provitamin B5 türevidir. Genelde %0.5-5 aralığında kullanılır.",
   "sodium hyaluronate":
-    "Sodium Hyaluronate; su tutma kapasitesiyle nem hissini artıran hyaluronik asit tuzudur.",
+    "Sodium Hyaluronate; su tutma kapasitesiyle nem hissini artıran hyaluronik asit tuzudur. Genelde %0.05-0.5 aralığında kullanılır.",
   bakuchiol:
-    "Bakuchiol; retinoid alternatifi olarak konumlanan, yaşlanma karşıtı ürünlerde popüler bitkisel aktiflerden biridir.",
+    "Bakuchiol; retinoid alternatifi olarak konumlanan, yaşlanma karşıtı ürünlerde popüler bitkisel aktiflerden biridir. Genelde %0.5-1 aralığı tercih edilir.",
   ectoin:
-    "Ectoin; çevresel stres, bariyer hissi ve nem desteği iddialarında kullanılan modern bir kozmetik aktiftir.",
+    "Ectoin; çevresel stres, bariyer hissi ve nem desteği iddialarında kullanılan modern bir kozmetik aktiftir. Genelde %0.3-2 aralığında değerlendirilebilir.",
 };
 
 const trendIngredients = [
@@ -277,6 +456,19 @@ const trendIngredients = [
   { name: "Tremella Fuciformis", rate: "+35%" },
   { name: "Polyglutamic Acid", rate: "+31%" },
 ];
+
+function normalizeText(text: string) {
+  return text
+    .toLocaleLowerCase("tr-TR")
+    .replaceAll("ı", "i")
+    .replaceAll("ş", "s")
+    .replaceAll("ğ", "g")
+    .replaceAll("ü", "u")
+    .replaceAll("ö", "o")
+    .replaceAll("ç", "c")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 export default function Page() {
   const [activeMenu, setActiveMenu] = useState("Ana Sayfa");
@@ -332,15 +524,125 @@ export default function Page() {
 
   function scrollTo(id: string) {
     setTimeout(() => {
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.getElementById(id)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
     }, 50);
   }
 
   function createAnswer(text: string) {
-    const q = text.toLocaleLowerCase("tr-TR");
+    const q = normalizeText(text);
 
-    if (!text.trim()) {
+    const hasNiacinamide =
+      q.includes("niasinamid") ||
+      q.includes("niasin amid") ||
+      q.includes("niacinamide") ||
+      q.includes("niacin amid") ||
+      q.includes("vitamin b3") ||
+      q.includes("b3 vitamini");
+
+    const asksMax =
+      q.includes("en cok") ||
+      q.includes("max") ||
+      q.includes("maks") ||
+      q.includes("kac") ||
+      q.includes("yuzde") ||
+      q.includes("%") ||
+      q.includes("oran") ||
+      q.includes("kullanilabilir") ||
+      q.includes("kullanilir");
+
+    if (!q) {
       return "Bir soru yazarsan formül, bileşen, mevzuat veya stabilite tarafında cevap hazırlayabilirim.";
+    }
+
+    if (hasNiacinamide && asksMax) {
+      return [
+        "Niasinamid kozmetik formüllerde genelde %2-5 aralığında kullanılır.",
+        "Hassas cilt ürünlerinde ben olsam %2-4 bandını daha güvenli ve konforlu seçerdim.",
+        "Bazı serumlarda %10 seviyesine kadar çıkılabilir; ama bu her formül için otomatik doğru değildir.",
+        "Yüksek oranlarda iritasyon, kızarma, yapışkan his, çözünme problemi veya pH uyumsuzluğu görülebilir.",
+        "Pratik formülasyon hedefi olarak pH 5.2-6.2 bandı güzel çalışır; çok asidik sistemlerde dikkatli olmak gerekir.",
+        "Mevzuat tarafında ürünün satılacağı ülke, ürün tipi ve tedarikçi teknik dokümanı ayrıca kontrol edilmelidir.",
+      ].join(" ");
+    }
+
+    if (hasNiacinamide) {
+      return [
+        "Niasinamid; bariyer desteği, ton eşitsizliği görünümü, sebum dengesi ve cilt konforu için kullanılan çok yönlü bir aktiftir.",
+        "Formüllerde genelde %2-5 aralığı tercih edilir.",
+        "Hassas ciltlerde daha soft başlamak için %2-4 mantıklı olur.",
+        "Serumlarda %10'a kadar kullanılan örnekler vardır ama stabilite, pH ve tolerans testi gerekir.",
+      ].join(" ");
+    }
+
+    if (
+      q.includes("panthenol") ||
+      q.includes("pantenol") ||
+      q.includes("provitamin b5") ||
+      q.includes("b5")
+    ) {
+      return [
+        "Pantenol genelde %0.5-5 aralığında kullanılabilir.",
+        "Nem ve yatıştırıcı etki için %1-2 çok güzel çalışır.",
+        "Hassas cilt, bariyer ve bebek ürünlerinde konfor hissi için iyi bir destek aktiftir.",
+        "Su fazına veya soğuk faza eklenebilir; tedarikçi sıcaklık önerisi kontrol edilmelidir.",
+      ].join(" ");
+    }
+
+    if (
+      q.includes("hyaluronic") ||
+      q.includes("hyaluron") ||
+      q.includes("hiyaluron") ||
+      q.includes("sodium hyaluronate")
+    ) {
+      return [
+        "Sodium Hyaluronate genelde %0.05-0.5 aralığında kullanılır.",
+        "Serumlarda %0.1-0.3 çoğu zaman yeterli ve daha konforlu olur.",
+        "Yüksek oranlarda ipliksi veya yapışkan his verebilir.",
+        "Yavaş hidrate edilmeli; doğrudan suya hızlı eklenirse topaklanabilir.",
+      ].join(" ");
+    }
+
+    if (q.includes("allantoin") || q.includes("alantoin")) {
+      return [
+        "Allantoin genelde %0.1-0.5 aralığında kullanılır.",
+        "Hassas ve yatıştırıcı ürünlerde %0.2-0.3 iyi bir başlangıç oranıdır.",
+        "Çözünürlüğü sınırlı olduğu için fazla kullanımda kristallenme veya çözünmeme görülebilir.",
+      ].join(" ");
+    }
+
+    if (q.includes("gliserin") || q.includes("glycerin")) {
+      return [
+        "Gliserin genelde %2-5 aralığında çok konforlu çalışır.",
+        "Kuru cilt ürünlerinde %5-10'a çıkılabilir ama yapışkanlık artabilir.",
+        "Nem tutucu/humektan görevi görür ve su fazında kullanılır.",
+      ].join(" ");
+    }
+
+    if (q.includes("ksantan") || q.includes("xanthan")) {
+      return [
+        "Xanthan Gum genelde %0.1-0.5 aralığında kullanılır.",
+        "Serum ve jel yapılarında %0.15-0.3 daha zarif bir kıvam verir.",
+        "Topaklanmayı önlemek için gliserin veya propanediol içinde ön dispersiyon yapmak iyi olur.",
+      ].join(" ");
+    }
+
+    if (q.includes("bakuchiol")) {
+      return [
+        "Bakuchiol genelde %0.5-1 aralığında kullanılır.",
+        "Yağ fazına daha uygun bir aktiftir; serum/krem tipine göre solubilizasyon veya yağ fazı tasarımı gerekir.",
+        "Retinoid alternatifi gibi konumlandırılabilir ama yine de stabilite ve ambalaj uyumu kontrol edilmelidir.",
+      ].join(" ");
+    }
+
+    if (q.includes("ectoin")) {
+      return [
+        "Ectoin genelde %0.3-2 aralığında değerlendirilebilir.",
+        "Hassas cilt, bariyer desteği ve çevresel stres iddialarında güzel duran modern bir aktiftir.",
+        "Sulu faza uygun formüllerde daha rahat konumlandırılabilir.",
+      ].join(" ");
     }
 
     if (q.includes("temizleme") || q.includes("jel") || q.includes("cleanser")) {
@@ -358,10 +660,6 @@ export default function Page() {
       return "Nemlendirici serum formülü hazırlandı. Aktif faz, pH aralığı, viskozite, koku, görünüm ve hazırlama yöntemi sağ panelde güncellendi.";
     }
 
-    if (q.includes("inci") || q.includes("niacinamide") || q.includes("pantenol")) {
-      return "INCI analizinde bileşenin adı, fonksiyonu, çözünürlük davranışı, pH uyumu, kullanım alanı ve mevzuat durumu birlikte değerlendirilir.";
-    }
-
     if (q.includes("mevzuat")) {
       return `${market} pazarı için ön mevzuat kontrolü açıldı. Yasaklı/kısıtlı bileşen, kullanım oranı, ürün kategorisi ve hedef pazar birlikte incelenmelidir.`;
     }
@@ -374,7 +672,7 @@ export default function Page() {
       return "Trend bileşenler alanında Ectoin, PDRN, Bakuchiol, Tremella Fuciformis ve Polyglutamic Acid öne çıkıyor. Bu bileşenleri formüle göre uyumluluk açısından inceleyebilirim.";
     }
 
-    return "İsteğini aldım. Bunu formülasyon, bileşen analizi, mevzuat ve stabilite açısından değerlendirebilirim.";
+    return "Sorunu biraz daha hammadde, ürün tipi veya hedef iddia ile yazarsan daha net cevap verebilirim. Örneğin: 'Niasinamid serumda yüzde kaç kullanılır?' ya da 'Hassas cilt için serum formülü oluştur.'";
   }
 
   function handleSend(question?: string) {
@@ -387,7 +685,7 @@ export default function Page() {
 
     setTimeout(() => {
       addMessage("assistant", answer);
-    }, 250);
+    }, 200);
 
     setMainQuestion("");
   }
@@ -399,7 +697,7 @@ export default function Page() {
 
   function handleInciSearch(value?: string) {
     const searchValue = value ?? inciSearch;
-    const key = searchValue.trim().toLocaleLowerCase("tr-TR");
+    const key = normalizeText(searchValue);
 
     const result =
       inciData[key] ||
@@ -426,9 +724,21 @@ export default function Page() {
       "Analiz Sonuçları": () => scrollTo("chat-panel"),
       "Trend Bileşenler": () => scrollTo("trend-card"),
       "Endüstriyel Sektörler": () => scrollTo("sector-area"),
-      Kütüphane: () => addMessage("assistant", "Kütüphane açıldı. Burada kayıtlı formüller, INCI notları ve mevzuat özetleri listelenebilir."),
-      Favoriler: () => addMessage("assistant", "Favoriler açıldı. Kaydettiğin formüller ve bileşenler burada görünecek."),
-      Ayarlar: () => addMessage("assistant", "Ayarlar açıldı. Tema, asistan modu, PDF ayarı ve çıktı dili buradan yönetilebilir."),
+      Kütüphane: () =>
+        addMessage(
+          "assistant",
+          "Kütüphane açıldı. Burada kayıtlı formüller, INCI notları ve mevzuat özetleri listelenebilir."
+        ),
+      Favoriler: () =>
+        addMessage(
+          "assistant",
+          "Favoriler açıldı. Kaydettiğin formüller ve bileşenler burada görünecek."
+        ),
+      Ayarlar: () =>
+        addMessage(
+          "assistant",
+          "Ayarlar açıldı. Tema, asistan modu, PDF ayarı ve çıktı dili buradan yönetilebilir."
+        ),
     };
 
     actions[item]?.();
@@ -448,37 +758,55 @@ export default function Page() {
 
   function selectFormula(key: FormulaKey) {
     setFormulaKey(key);
-    addMessage("assistant", `${formulas[key].title} seçildi. Fazlar, gramajlar ve hazırlama yöntemi sağ panelde güncellendi.`);
+    addMessage(
+      "assistant",
+      `${formulas[key].title} seçildi. Fazlar, gramajlar ve hazırlama yöntemi sağ panelde güncellendi.`
+    );
     scrollTo("formula-panel");
   }
 
   function selectAmount(amount: number) {
     setTargetAmount(amount);
-    addMessage("assistant", `Hedef miktar ${amount === 1000 ? "1 L" : amount + " ml"} olarak güncellendi. Sağ panelde gramajlar otomatik hesaplandı.`);
+    addMessage(
+      "assistant",
+      `Hedef miktar ${amount === 1000 ? "1 L" : amount + " ml"} olarak güncellendi. Sağ panelde gramajlar otomatik hesaplandı.`
+    );
   }
 
   function selectPhase(phaseKey: string) {
     setSelectedPhase(phaseKey);
     const phase = formula.phases.find((p) => p.key === phaseKey);
-    addMessage("assistant", `Faz ${phaseKey} seçildi: ${phase?.name}. İçerikleri sağ panelde görüntüleniyor.`);
+    addMessage(
+      "assistant",
+      `Faz ${phaseKey} seçildi: ${phase?.name}. İçerikleri sağ panelde görüntüleniyor.`
+    );
   }
 
   function handleTrendClick(name: string) {
     setInciSearch(name);
     handleInciSearch(name);
-    addMessage("assistant", `${name} trend bileşeni seçildi. Formül uyumu ve kullanım amacı incelenebilir.`);
+    addMessage(
+      "assistant",
+      `${name} trend bileşeni seçildi. Formül uyumu ve kullanım amacı incelenebilir.`
+    );
   }
 
   function handleMarketChange(value: string) {
     setMarket(value);
-    addMessage("assistant", `${value} pazarı seçildi. Mevzuat kontrolü bu hedef pazara göre değerlendirilecek.`);
+    addMessage(
+      "assistant",
+      `${value} pazarı seçildi. Mevzuat kontrolü bu hedef pazara göre değerlendirilecek.`
+    );
   }
 
   function downloadPdf() {
     const oldTitle = document.title;
     document.title = `InciLab - ${formula.title}`;
     setShowMethod(true);
-    addMessage("assistant", "PDF çıktısı hazırlanıyor. Açılan yazdırma penceresinden PDF olarak kaydedebilirsin.");
+    addMessage(
+      "assistant",
+      "PDF çıktısı hazırlanıyor. Açılan yazdırma penceresinden PDF olarak kaydedebilirsin."
+    );
     setTimeout(() => {
       window.print();
       document.title = oldTitle;
@@ -502,7 +830,9 @@ export default function Page() {
       "İÇERİK LİSTESİ",
       ...allItems.map(
         (i) =>
-          `Faz ${i.phaseKey} - ${i.name} (${i.inci}) | %${i.percent} | ${scaledAmount(i.percent).toFixed(2)} g | ${i.functionName}`
+          `Faz ${i.phaseKey} - ${i.name} (${i.inci}) | %${i.percent} | ${scaledAmount(
+            i.percent
+          ).toFixed(2)} g | ${i.functionName}`
       ),
       "",
       "NASIL YAPILIR?",
@@ -521,7 +851,10 @@ export default function Page() {
     a.click();
 
     URL.revokeObjectURL(url);
-    addMessage("assistant", "Formül raporu TXT olarak indirildi. PDF için PDF İndir butonunu kullanabilirsin.");
+    addMessage(
+      "assistant",
+      "Formül raporu TXT olarak indirildi. PDF için PDF İndir butonunu kullanabilirsin."
+    );
   }
 
   function clearChat() {
@@ -576,10 +909,24 @@ export default function Page() {
             <span />
           </div>
           <div className="usageLinks">
-            <button onClick={() => addMessage("assistant", "Pro Plan bilgisi açıldı. Daha fazla sorgu, PDF çıktısı ve gelişmiş analiz modları eklenebilir.")}>
+            <button
+              onClick={() =>
+                addMessage(
+                  "assistant",
+                  "Pro Plan bilgisi açıldı. Daha fazla sorgu, PDF çıktısı ve gelişmiş analiz modları eklenebilir."
+                )
+              }
+            >
               Pro Plan
             </button>
-            <button onClick={() => addMessage("assistant", "Plan yükseltme ekranı için ödeme/üyelik modülü bağlanabilir.")}>
+            <button
+              onClick={() =>
+                addMessage(
+                  "assistant",
+                  "Plan yükseltme ekranı için ödeme/üyelik modülü bağlanabilir."
+                )
+              }
+            >
               Planı Yükselt →
             </button>
           </div>
@@ -591,7 +938,14 @@ export default function Page() {
             <strong>Arzu Demir</strong>
             <span>AR-LAB Cosmetics</span>
           </div>
-          <button onClick={() => addMessage("assistant", "Profil menüsü açıldı. Kullanıcı bilgileri, şirket adı ve çalışma alanı burada düzenlenebilir.")}>
+          <button
+            onClick={() =>
+              addMessage(
+                "assistant",
+                "Profil menüsü açıldı. Kullanıcı bilgileri, şirket adı ve çalışma alanı burada düzenlenebilir."
+              )
+            }
+          >
             ⌄
           </button>
         </div>
@@ -609,17 +963,40 @@ export default function Page() {
         <header className="topBar no-print">
           <div>
             <h1>Merhaba, Arzu 👋</h1>
-            <p>InciLab AI Asistan, formülasyon, analiz ve içerik araştırmalarınızda yanınızda.</p>
+            <p>
+              InciLab AI Asistan, formülasyon, analiz ve içerik araştırmalarınızda yanınızda.
+            </p>
           </div>
 
           <div className="topActions">
-            <button onClick={() => addMessage("assistant", "Bildirimler: Formül raporu, mevzuat uyarısı ve trend bileşen güncellemeleri burada listelenebilir.")}>
+            <button
+              onClick={() =>
+                addMessage(
+                  "assistant",
+                  "Bildirimler: Formül raporu, mevzuat uyarısı ve trend bileşen güncellemeleri burada listelenebilir."
+                )
+              }
+            >
               🔔
             </button>
-            <button onClick={() => addMessage("assistant", "Parlak pastel laboratuvar teması aktif. Renkler açık pembe, bebe mavisi, lila, açık sarı ve en açık yeşil tonlarında.")}>
+            <button
+              onClick={() =>
+                addMessage(
+                  "assistant",
+                  "Parlak pastel laboratuvar teması aktif. Renkler açık pembe, bebe mavisi, lila, açık sarı ve en açık yeşil tonlarında."
+                )
+              }
+            >
               ✦
             </button>
-            <button onClick={() => addMessage("assistant", "Yardım: Menüden INCI sorgu, formül oluşturma, trend bileşenler ve mevzuat kontrolü alanlarına geçebilirsin.")}>
+            <button
+              onClick={() =>
+                addMessage(
+                  "assistant",
+                  "Yardım: Menüden INCI sorgu, formül oluşturma, trend bileşenler ve mevzuat kontrolü alanlarına geçebilirsin."
+                )
+              }
+            >
               ?
             </button>
             <button
@@ -678,7 +1055,10 @@ export default function Page() {
 
               <div className="messages">
                 {chatMessages.map((msg) => (
-                  <div key={msg.id} className={msg.sender === "user" ? "msg user" : "msg assistant"}>
+                  <div
+                    key={msg.id}
+                    className={msg.sender === "user" ? "msg user" : "msg assistant"}
+                  >
                     <strong>{msg.sender === "user" ? "Sen" : "InciLab"}</strong>
                     <p>{msg.text}</p>
                   </div>
@@ -700,17 +1080,28 @@ export default function Page() {
                   </button>
                 ))}
               </div>
-              <small>✦ Sektöre tıklayarak o alana özel içerik ve analizlere ulaşabilirsiniz.</small>
+              <small>
+                ✦ Sektöre tıklayarak o alana özel içerik ve analizlere ulaşabilirsiniz.
+              </small>
             </section>
 
             <section className="formulaTypeRow no-print">
-              <button onClick={() => selectFormula("serum")} className={formulaKey === "serum" ? "selectedFormula" : ""}>
+              <button
+                onClick={() => selectFormula("serum")}
+                className={formulaKey === "serum" ? "selectedFormula" : ""}
+              >
                 Nemlendirici Serum
               </button>
-              <button onClick={() => selectFormula("cleanser")} className={formulaKey === "cleanser" ? "selectedFormula" : ""}>
+              <button
+                onClick={() => selectFormula("cleanser")}
+                className={formulaKey === "cleanser" ? "selectedFormula" : ""}
+              >
                 Yüz Temizleme Jeli
               </button>
-              <button onClick={() => selectFormula("cream")} className={formulaKey === "cream" ? "selectedFormula" : ""}>
+              <button
+                onClick={() => selectFormula("cream")}
+                className={formulaKey === "cream" ? "selectedFormula" : ""}
+              >
                 Bariyer Krem
               </button>
             </section>
@@ -825,13 +1216,17 @@ export default function Page() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleAnalysis();
                   }}
-                  placeholder="Örn. Hassas ciltler için nazik, nemlendirici bir yüz temizleme jeli formülü oluşturur musun?"
+                  placeholder="Örn. Niasinamid formüllerde en çok kaç kullanılabilir?"
                 />
                 <button onClick={handleAnalysis}>✧ Analiz Başlat</button>
               </div>
               <div className="analysisLinks">
-                <button onClick={() => setAnalysisText("Hassas ciltler için serum formülü oluştur")}>📎 Örnek Soru</button>
-                <button onClick={() => setAnalysisText("Niacinamide pH uyumu nedir?")}>⚙ İçerik Uyumu</button>
+                <button onClick={() => setAnalysisText("Hassas ciltler için serum formülü oluştur")}>
+                  📎 Örnek Soru
+                </button>
+                <button onClick={() => setAnalysisText("Niasinamid formüllerde en çok kaç kullanılabilir?")}>
+                  ⚙ İçerik Uyumu
+                </button>
                 <button onClick={() => setAnalysisText("Mevzuat kontrolü yap")}>🛡 Mevzuat</button>
               </div>
               <div className="labGlassDecor">
@@ -848,7 +1243,17 @@ export default function Page() {
               <label>Formül Adı</label>
               <div className="formulaName">
                 <input value={formula.title} readOnly />
-                <button onClick={() => selectFormula(formulaKey === "serum" ? "cleanser" : formulaKey === "cleanser" ? "cream" : "serum")}>
+                <button
+                  onClick={() =>
+                    selectFormula(
+                      formulaKey === "serum"
+                        ? "cleanser"
+                        : formulaKey === "cleanser"
+                        ? "cream"
+                        : "serum"
+                    )
+                  }
+                >
                   ✎
                 </button>
               </div>
@@ -896,9 +1301,14 @@ export default function Page() {
 
               <div className="phaseResultList">
                 {formula.phases.map((phase) => (
-                  <article key={phase.key} className={selectedPhase === phase.key ? "resultActive" : ""}>
+                  <article
+                    key={phase.key}
+                    className={selectedPhase === phase.key ? "resultActive" : ""}
+                  >
                     <div className="phaseResultHead">
-                      <h3>Faz {phase.key} <small>({phase.name})</small></h3>
+                      <h3>
+                        Faz {phase.key} <small>({phase.name})</small>
+                      </h3>
                       <strong>
                         % {phase.percent.toFixed(2).replace(".", ",")}
                         <br />
@@ -933,12 +1343,24 @@ export default function Page() {
               <div className="summaryBox">
                 <h3>Formül Özeti</h3>
                 <div>
-                  <p><b>pH:</b> {formula.ph}</p>
-                  <p><b>Viskozite:</b> {formula.viscosity}</p>
-                  <p><b>Görünüm:</b> {formula.appearance}</p>
-                  <p><b>Koku:</b> {formula.scent}</p>
-                  <p><b>Hissiyat:</b> {formula.skinFeel}</p>
-                  <p><b>Tip:</b> {formula.productType}</p>
+                  <p>
+                    <b>pH:</b> {formula.ph}
+                  </p>
+                  <p>
+                    <b>Viskozite:</b> {formula.viscosity}
+                  </p>
+                  <p>
+                    <b>Görünüm:</b> {formula.appearance}
+                  </p>
+                  <p>
+                    <b>Koku:</b> {formula.scent}
+                  </p>
+                  <p>
+                    <b>Hissiyat:</b> {formula.skinFeel}
+                  </p>
+                  <p>
+                    <b>Tip:</b> {formula.productType}
+                  </p>
                 </div>
               </div>
 
@@ -946,7 +1368,9 @@ export default function Page() {
                 <button onClick={saveFormula}>Formülü Kaydet</button>
                 <button onClick={downloadPdf}>▣ PDF İndir</button>
               </div>
-              <p className="pdfNote">Rapor, içerik listesi, hazırlama yöntemi ve mevzuat özeti dahildir.</p>
+              <p className="pdfNote">
+                Rapor, içerik listesi, hazırlama yöntemi ve mevzuat özeti dahildir.
+              </p>
             </section>
           </aside>
         </section>
@@ -961,14 +1385,12 @@ export default function Page() {
           --ink: #16213f;
           --muted: #73809d;
           --line: rgba(255, 255, 255, 0.72);
-          --card: rgba(255, 255, 255, 0.58);
           --pink: #ff9bd6;
           --lila: #b79cff;
           --blue: #a7dfff;
           --mint: #a9f7de;
           --yellow: #fff1a8;
           --violet: #7b61ff;
-          --cyan: #48d7e8;
         }
 
         body {
