@@ -2,950 +2,619 @@
 
 import React, { useMemo, useState } from "react";
 
-type ProductType = "cream" | "serum" | "cleanser";
+type NavItem = {
+  label: string;
+  icon: string;
+};
 
-type Ingredient = {
-  phase: "A" | "B" | "C" | "D";
-  phaseTitle: string;
+type StatCard = {
+  label: string;
+  value: string;
+  sub: string;
+  icon: string;
+};
+
+type Sector = {
   name: string;
-  inci: string;
-  percent: number;
-  role: string;
-  detail: string;
-  processNote: string;
+  percent: string;
+  icon: string;
 };
 
-type FormulaTemplate = {
+type Device = {
+  name: string;
+  model: string;
+  status: string;
+  icon: string;
+};
+
+type AlertItem = {
   title: string;
-  productType: string;
-  shortDescription: string;
-  claim: string;
-  targetPh: string;
-  expectedViscosity: string;
-  expectedColor: string;
-  expectedAppearance: string;
-  expectedScent: string;
-  expectedTexture: string;
-  packaging: string;
-  method: string[];
-  ingredients: Ingredient[];
-  warning: string;
+  desc: string;
+  time: string;
+  type: "warning" | "info" | "success" | "danger";
 };
 
-const formulaTemplates: Record<ProductType, FormulaTemplate> = {
-  cream: {
-    title: "Bariyer Destekleyici Nemlendirici Krem",
-    productType: "Krem / Emülsiyon",
-    shortDescription:
-      "Kuru, hassas veya bariyer desteği isteyen ciltler için ön AR-GE krem formülü.",
-    claim:
-      "Nem desteği sağlar, cilt bariyer hissini güçlendirir, yumuşak ve konforlu bir bitiş verir.",
-    targetPh: "5.2 - 5.8",
-    expectedViscosity:
-      "Orta-yüksek viskozite. Akışkan olmayan, kavanoz / tüp / airless ambalaja uygun krem kıvamı.",
-    expectedColor: "Beyaz / kırık beyaz",
-    expectedAppearance: "Homojen, opak, parlak krem görünümü",
-    expectedScent:
-      "Parfümsüzse hafif hammadde kokusu; parfüm eklenirse yumuşak kozmetik koku.",
-    expectedTexture:
-      "Kolay yayılan, hafif film bırakan, çok yağlı olmayan yumuşak krem hissi.",
-    packaging: "Airless pompa, tüp veya kavanoz",
-    warning:
-      "Bu formül ön AR-GE denemesidir. Stabilite, mikrobiyoloji, challenge test ve ambalaj uyumluluğu yapılmadan piyasaya sunulmamalıdır.",
-    method: [
-      "Faz A için saf su ana behere alınır. EDTA çözündürülür.",
-      "Gliserin ayrı kapta ksantan gam ile ön dispersiyon yapılır ve su fazına yavaşça eklenir.",
-      "Faz A 70-75°C’ye kadar ısıtılır ve homojen karışım sağlanır.",
-      "Faz B ayrı beherde hazırlanır. Yağlar, emülgatör ve kıvam vericiler 70-75°C’de tamamen eritilir.",
-      "Faz B, Faz A üzerine yavaşça eklenir. Homojenizatör veya yüksek devirli karıştırıcı ile 3-5 dakika karıştırılır.",
-      "Karışım orta devirde soğutulur. 40°C altına düşünce Faz C aktifleri ve koruyucu eklenir.",
-      "pH ölçülür. Gerekirse sitrik asit veya sodyum hidroksit çözeltisiyle hedef pH’a ayarlanır.",
-      "Son kontrolde görünüm, koku, renk, viskozite, pH ve faz ayrımı değerlendirilir.",
-    ],
-    ingredients: [
-      {
-        phase: "A",
-        phaseTitle: "Faz A - Su Fazı",
-        name: "Saf Su",
-        inci: "Aqua",
-        percent: 72.5,
-        role: "Ana çözücü",
-        detail:
-          "Formülün ana taşıyıcı fazıdır. Suda çözünen aktifleri, nem tutucuları ve yardımcı bileşenleri taşır.",
-        processNote: "Ana behere alınır.",
-      },
-      {
-        phase: "A",
-        phaseTitle: "Faz A - Su Fazı",
-        name: "Gliserin",
-        inci: "Glycerin",
-        percent: 4,
-        role: "Nem tutucu / humektan",
-        detail:
-          "Cilt yüzeyine su çekerek nem hissini artırır. Ürünün daha konforlu sürülmesine destek olur.",
-        processNote: "Ksantan gamı ön ıslatmak için de kullanılabilir.",
-      },
-      {
-        phase: "A",
-        phaseTitle: "Faz A - Su Fazı",
-        name: "Ksantan Gam",
-        inci: "Xanthan Gum",
-        percent: 0.3,
-        role: "Kıvam verici / stabilizatör",
-        detail:
-          "Formüle jelimsi yapı verir. Faz ayrımı riskini azaltmaya ve ürünün daha tok görünmesine yardımcı olur.",
-        processNote: "Topaklanmaması için gliserinle ön dispersiyon yapılmalıdır.",
-      },
-      {
-        phase: "A",
-        phaseTitle: "Faz A - Su Fazı",
-        name: "Disodyum EDTA",
-        inci: "Disodium EDTA",
-        percent: 0.1,
-        role: "Şelatlayıcı",
-        detail:
-          "Metal iyonlarını bağlayarak formül stabilitesine ve koruyucu sistem performansına destek olur.",
-        processNote: "Su fazında çözündürülür.",
-      },
-      {
-        phase: "B",
-        phaseTitle: "Faz B - Yağ Fazı",
-        name: "Kaprilik/Kaprik Trigliserit",
-        inci: "Caprylic/Capric Triglyceride",
-        percent: 6,
-        role: "Emolyan",
-        detail:
-          "Cilde kayganlık ve yumuşaklık verir. Ağır olmayan, daha ipeksi bir sürüm hissi sağlar.",
-        processNote: "Yağ fazına alınır.",
-      },
-      {
-        phase: "B",
-        phaseTitle: "Faz B - Yağ Fazı",
-        name: "Gliseril Stearat Sitrat",
-        inci: "Glyceryl Stearate Citrate",
-        percent: 2.5,
-        role: "Emülgatör",
-        detail:
-          "Su ve yağ fazının birleşerek stabil krem yapısı oluşturmasını sağlar.",
-        processNote: "Yağ fazında tamamen eritilir.",
-      },
-      {
-        phase: "B",
-        phaseTitle: "Faz B - Yağ Fazı",
-        name: "Setearil Alkol",
-        inci: "Cetearyl Alcohol",
-        percent: 3,
-        role: "Kıvam artırıcı / ko-emülgatör",
-        detail:
-          "Kreme gövde verir. Daha yoğun, stabil ve dolgun bir yapı oluşturur.",
-        processNote: "Yağ fazında eritilir.",
-      },
-      {
-        phase: "B",
-        phaseTitle: "Faz B - Yağ Fazı",
-        name: "Shea Yağı",
-        inci: "Butyrospermum Parkii Butter",
-        percent: 3,
-        role: "Besleyici emolyan",
-        detail:
-          "Kuru cilt hissini azaltır. Formüle daha zengin ve koruyucu bir dokunuş verir.",
-        processNote: "Yağ fazında eritilir.",
-      },
-      {
-        phase: "C",
-        phaseTitle: "Faz C - Soğuk Faz / Aktif Faz",
-        name: "Niasinamid",
-        inci: "Niacinamide",
-        percent: 4,
-        role: "Aktif bileşen",
-        detail:
-          "Bariyer desteği, ton eşitsizliği görünümü ve sebum dengesi gibi iddialarda kullanılan çok yönlü aktiftir.",
-        processNote: "40°C altına düşünce eklenir.",
-      },
-      {
-        phase: "C",
-        phaseTitle: "Faz C - Soğuk Faz / Aktif Faz",
-        name: "Pantenol",
-        inci: "Panthenol",
-        percent: 2,
-        role: "Nem / yatıştırıcı destek",
-        detail:
-          "Ciltte konfor hissini artırır. Bariyer destekli ve hassas cilt ürünlerinde güzel durur.",
-        processNote: "Soğuk fazda eklenir.",
-      },
-      {
-        phase: "C",
-        phaseTitle: "Faz C - Soğuk Faz / Aktif Faz",
-        name: "Koruyucu Sistem",
-        inci: "Phenoxyethanol, Ethylhexylglycerin",
-        percent: 0.9,
-        role: "Koruyucu",
-        detail:
-          "Su içeren formülün mikrobiyal bozulmaya karşı korunmasına yardımcı olur.",
-        processNote: "Genelde 40°C altında eklenir.",
-      },
-      {
-        phase: "C",
-        phaseTitle: "Faz C - Soğuk Faz / Aktif Faz",
-        name: "Parfüm",
-        inci: "Parfum",
-        percent: 0.2,
-        role: "Koku verici",
-        detail:
-          "Ürünün duyusal algısını güzelleştirir. Hassas cilt ürünlerinde opsiyonel tutulabilir.",
-        processNote: "Soğuk fazda eklenir.",
-      },
-      {
-        phase: "D",
-        phaseTitle: "Faz D - Son Ayar",
-        name: "pH Ayarlayıcı / Suya Tamamlama",
-        inci: "Citric Acid / Sodium Hydroxide / Aqua",
-        percent: 1.5,
-        role: "pH düzenleyici / q.s.",
-        detail:
-          "Formülün hedef pH aralığına getirilmesini sağlar. Pratikte pH ölçülerek q.s. ayarlanır.",
-        processNote: "Son aşamada damla damla eklenir ve pH tekrar ölçülür.",
-      },
-    ],
-  },
-
-  serum: {
-    title: "Nem ve Aydınlık Destekli Serum",
-    productType: "Su bazlı serum",
-    shortDescription:
-      "Hafif, hızlı yayılan, nem ve canlı görünüm hedefleyen serum ön formülü.",
-    claim:
-      "Cilde nem desteği verir, daha canlı ve dengeli görünüm hedefler.",
-    targetPh: "5.2 - 5.8",
-    expectedViscosity:
-      "Düşük-orta viskozite. Damlalıklı veya serum pompalı ambalaja uygun.",
-    expectedColor: "Renksiz / hafif sarımsı",
-    expectedAppearance: "Şeffaf veya hafif opalimsi serum görünümü",
-    expectedScent:
-      "Parfümsüzse aktiflerden gelen hafif karakteristik koku olabilir.",
-    expectedTexture:
-      "Hafif, hızlı yayılan, düşük yağ hissi veren serum dokusu.",
-    packaging: "Damlalıklı şişe, airless serum pompası veya serum pompası",
-    warning:
-      "Serumlarda pH drift, renk değişimi, aktif uyumluluğu ve mikrobiyolojik dayanım mutlaka izlenmelidir.",
-    method: [
-      "Faz A için saf su ana behere alınır.",
-      "Propanediol ve gliserin eklenir.",
-      "Sodyum hiyalüronat ve ksantan gam yavaşça serpilerek hidrate edilir.",
-      "Niasinamid, pantenol ve betaine eklenir; tamamen çözünene kadar karıştırılır.",
-      "Koruyucu sistem eklenir.",
-      "Parfüm kullanılacaksa solubilizer ile ön karışım yapılıp eklenir.",
-      "pH 5.2-5.8 aralığına ayarlanır.",
-      "Berraklık, viskozite, renk, koku ve pH kontrol edilir.",
-    ],
-    ingredients: [
-      {
-        phase: "A",
-        phaseTitle: "Faz A - Su Fazı",
-        name: "Saf Su",
-        inci: "Aqua",
-        percent: 82.2,
-        role: "Ana çözücü",
-        detail: "Serumun ana taşıyıcı fazını oluşturur.",
-        processNote: "Ana behere alınır.",
-      },
-      {
-        phase: "A",
-        phaseTitle: "Faz A - Su Fazı",
-        name: "Propanediol",
-        inci: "Propanediol",
-        percent: 5,
-        role: "Nem destekleyici / çözücü",
-        detail:
-          "Nem hissini artırır ve bazı aktiflerin çözünmesine destek olur.",
-        processNote: "Su fazına eklenir.",
-      },
-      {
-        phase: "A",
-        phaseTitle: "Faz A - Su Fazı",
-        name: "Gliserin",
-        inci: "Glycerin",
-        percent: 3,
-        role: "Humektan",
-        detail:
-          "Cilt yüzeyinde nem hissini artırır ve serumun daha kaygan yayılmasına destek olur.",
-        processNote: "Su fazına eklenir.",
-      },
-      {
-        phase: "A",
-        phaseTitle: "Faz A - Su Fazı",
-        name: "Sodyum Hiyalüronat",
-        inci: "Sodium Hyaluronate",
-        percent: 0.2,
-        role: "Nem tutucu aktif",
-        detail:
-          "Cilt yüzeyinde su tutmaya yardımcı olur. Daha dolgun ve nemli his verir.",
-        processNote: "Yavaş hidrate edilmeli, topaklanma önlenmelidir.",
-      },
-      {
-        phase: "A",
-        phaseTitle: "Faz A - Su Fazı",
-        name: "Ksantan Gam",
-        inci: "Xanthan Gum",
-        percent: 0.15,
-        role: "Hafif kıvam verici",
-        detail:
-          "Seruma hafif gövde kazandırır ve çok sulu akmasını azaltır.",
-        processNote: "Propanediol veya gliserinle ön dispersiyon yapılabilir.",
-      },
-      {
-        phase: "B",
-        phaseTitle: "Faz B - Aktif Faz",
-        name: "Niasinamid",
-        inci: "Niacinamide",
-        percent: 4,
-        role: "Aktif bileşen",
-        detail:
-          "Ton eşitsizliği görünümü, bariyer desteği ve sebum dengesi temalarında kullanılır.",
-        processNote: "Oda sıcaklığında çözündürülür.",
-      },
-      {
-        phase: "B",
-        phaseTitle: "Faz B - Aktif Faz",
-        name: "Pantenol",
-        inci: "Panthenol",
-        percent: 2,
-        role: "Nem / yatıştırıcı destek",
-        detail:
-          "Cildin daha konforlu ve nemli hissedilmesine yardımcı olur.",
-        processNote: "Su fazında çözündürülür.",
-      },
-      {
-        phase: "B",
-        phaseTitle: "Faz B - Aktif Faz",
-        name: "Betaine",
-        inci: "Betaine",
-        percent: 2,
-        role: "Osmolit / nem destekleyici",
-        detail:
-          "Cildin nemli, yumuşak ve daha konforlu hissedilmesine destek olur.",
-        processNote: "Suda çözündürülür.",
-      },
-      {
-        phase: "C",
-        phaseTitle: "Faz C - Son Faz",
-        name: "Koruyucu Sistem",
-        inci: "Phenoxyethanol, Ethylhexylglycerin",
-        percent: 0.9,
-        role: "Koruyucu",
-        detail:
-          "Su bazlı serumun mikrobiyal bozulmaya karşı korunmasına destek olur.",
-        processNote: "Son aşamada eklenir.",
-      },
-      {
-        phase: "C",
-        phaseTitle: "Faz C - Son Faz",
-        name: "Solubilizer",
-        inci: "Polysorbate 20",
-        percent: 0.5,
-        role: "Çözündürmeye yardımcı",
-        detail:
-          "Parfüm veya yağda çözünen küçük bileşenlerin serum içinde dağılmasına yardımcı olur.",
-        processNote: "Parfümle ön karışım yapılabilir.",
-      },
-      {
-        phase: "C",
-        phaseTitle: "Faz C - Son Faz",
-        name: "Parfüm",
-        inci: "Parfum",
-        percent: 0.05,
-        role: "Koku verici",
-        detail:
-          "Ürüne hafif duyusal koku verir. Hassas cilt konseptinde çıkarılabilir.",
-        processNote: "Solubilizer ile ön karışım yapılarak eklenir.",
-      },
-    ],
-  },
-
-  cleanser: {
-    title: "Nazik Jel Temizleyici",
-    productType: "Sülfatsız jel temizleyici",
-    shortDescription:
-      "Cildi germeden temizlemeyi hedefleyen, jel yapıda nazik temizleyici ön formülü.",
-    claim:
-      "Cildi nazikçe temizler, kuruluk ve gerginlik hissini azaltmaya yardımcı olur.",
-    targetPh: "5.3 - 6.0",
-    expectedViscosity:
-      "Orta viskoz jel. Pompalı veya flip-top ambalaja uygun.",
-    expectedColor: "Renksiz / hafif opak",
-    expectedAppearance: "Şeffaf veya hafif opalimsi jel",
-    expectedScent:
-      "Hafif ferah kozmetik koku veya parfümsüz hammadde kokusu.",
-    expectedTexture:
-      "Kaygan, yumuşak köpüklü, cildi aşırı germeyen temizlik hissi.",
-    packaging: "Pompalı şişe veya flip-top şişe",
-    warning:
-      "Temizleyicilerde yüzey aktif aktif madde oranı, göz/cilt iritasyon potansiyeli ve viskozite stabilitesi ayrıca değerlendirilmelidir.",
-    method: [
-      "Saf su ana behere alınır.",
-      "Gliserin ve EDTA eklenir.",
-      "Hidroksietil selüloz yavaşça serpilerek hidrate edilir.",
-      "Yüzey aktifler düşük devirde ve köpürtmeden sırayla eklenir.",
-      "Pantenol, koruyucu ve parfüm eklenir.",
-      "pH 5.3-6.0 aralığına ayarlanır.",
-      "Köpük, berraklık, viskozite, koku ve pH kontrol edilir.",
-    ],
-    ingredients: [
-      {
-        phase: "A",
-        phaseTitle: "Faz A - Su Fazı",
-        name: "Saf Su",
-        inci: "Aqua",
-        percent: 67.5,
-        role: "Ana çözücü",
-        detail: "Temizleyici bazın ana taşıyıcı fazını oluşturur.",
-        processNote: "Ana behere alınır.",
-      },
-      {
-        phase: "A",
-        phaseTitle: "Faz A - Su Fazı",
-        name: "Gliserin",
-        inci: "Glycerin",
-        percent: 3,
-        role: "Nem destekleyici",
-        detail:
-          "Temizlik sonrası kuruluk ve gerginlik hissini azaltmaya yardımcı olur.",
-        processNote: "Su fazına eklenir.",
-      },
-      {
-        phase: "A",
-        phaseTitle: "Faz A - Su Fazı",
-        name: "Hidroksietil Selüloz",
-        inci: "Hydroxyethylcellulose",
-        percent: 0.8,
-        role: "Jel kıvam verici",
-        detail:
-          "Ürüne jel yapı verir, akışkanlığı kontrol eder.",
-        processNote: "Yavaşça serpilerek hidrate edilir.",
-      },
-      {
-        phase: "A",
-        phaseTitle: "Faz A - Su Fazı",
-        name: "Disodyum EDTA",
-        inci: "Disodium EDTA",
-        percent: 0.1,
-        role: "Şelatlayıcı",
-        detail:
-          "Metal iyonlarını bağlayarak formül stabilitesine ve koruyucu sisteme destek olur.",
-        processNote: "Su fazında çözündürülür.",
-      },
-      {
-        phase: "B",
-        phaseTitle: "Faz B - Temizleyici Faz",
-        name: "Koko Glukozit",
-        inci: "Coco-Glucoside",
-        percent: 8,
-        role: "Nazik noniyonik yüzey aktif",
-        detail:
-          "Temizleme performansı ve yumuşak köpük desteği sağlar.",
-        processNote: "Düşük devirde, köpürtmeden eklenir.",
-      },
-      {
-        phase: "B",
-        phaseTitle: "Faz B - Temizleyici Faz",
-        name: "Kokamidopropil Betain",
-        inci: "Cocamidopropyl Betaine",
-        percent: 10,
-        role: "Amfoterik yüzey aktif",
-        detail:
-          "Köpüğü destekler, temizleyici sistemin daha yumuşak hissedilmesine yardımcı olur.",
-        processNote: "Yavaşça eklenir.",
-      },
-      {
-        phase: "B",
-        phaseTitle: "Faz B - Temizleyici Faz",
-        name: "Sodyum Lauroil Sarkosinat",
-        inci: "Sodium Lauroyl Sarcosinate",
-        percent: 7,
-        role: "Anyonik yüzey aktif",
-        detail:
-          "Temizleme gücünü ve köpük performansını artırır.",
-        processNote: "Köpük oluşturmadan düşük devirde eklenir.",
-      },
-      {
-        phase: "C",
-        phaseTitle: "Faz C - Soğuk Faz",
-        name: "Pantenol",
-        inci: "Panthenol",
-        percent: 1,
-        role: "Konfor destekleyici aktif",
-        detail:
-          "Temizlik sonrası ciltte daha yumuşak ve rahat his bırakmaya destek olur.",
-        processNote: "Son aşamada eklenir.",
-      },
-      {
-        phase: "C",
-        phaseTitle: "Faz C - Soğuk Faz",
-        name: "Koruyucu Sistem",
-        inci: "Phenoxyethanol, Ethylhexylglycerin",
-        percent: 0.9,
-        role: "Koruyucu",
-        detail:
-          "Su bazlı temizleyicinin mikrobiyal dayanımına destek olur.",
-        processNote: "40°C altında eklenir.",
-      },
-      {
-        phase: "C",
-        phaseTitle: "Faz C - Soğuk Faz",
-        name: "Parfüm",
-        inci: "Parfum",
-        percent: 0.2,
-        role: "Koku verici",
-        detail:
-          "Ürünün daha hoş kokmasını sağlar. Hassas cilt konseptinde opsiyonel tutulabilir.",
-        processNote: "Son aşamada eklenir.",
-      },
-      {
-        phase: "D",
-        phaseTitle: "Faz D - pH Ayarı",
-        name: "pH Ayarlayıcı / Suya Tamamlama",
-        inci: "Citric Acid / Sodium Hydroxide / Aqua",
-        percent: 1.5,
-        role: "pH düzenleyici / q.s.",
-        detail:
-          "Temizleyiciyi ciltle daha uyumlu pH aralığına getirir.",
-        processNote: "pH ölçülerek q.s. ayarlanır.",
-      },
-    ],
-  },
+type Sample = {
+  id: string;
+  name: string;
+  sector: string;
+  stage: string;
+  progress: number;
+  date: string;
 };
 
-function formatNumber(value: number) {
-  return new Intl.NumberFormat("tr-TR", {
-    minimumFractionDigits: value < 1 ? 2 : 1,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
+const navItems: NavItem[] = [
+  { label: "Dashboard", icon: "▦" },
+  { label: "Analizler", icon: "◴" },
+  { label: "Örnekler", icon: "♙" },
+  { label: "Cihazlar", icon: "▣" },
+  { label: "Formüller", icon: "▤" },
+  { label: "Raporlar", icon: "▥" },
+  { label: "Kalite Kontrol", icon: "◇" },
+  { label: "Envanter", icon: "⬡" },
+  { label: "Metotlar", icon: "▧" },
+  { label: "Validasyon", icon: "◎" },
+  { label: "Ayarlar", icon: "⚙" },
+];
 
-function detectProductType(text: string): ProductType {
-  const lower = text.toLocaleLowerCase("tr-TR");
+const stats: StatCard[] = [
+  { label: "Aktif Örnek", value: "148", sub: "↑ 11% bu hafta", icon: "⚗" },
+  { label: "Başarı Oranı", value: "94.2%", sub: "↑ 2.1% bu hafta", icon: "⌁" },
+  { label: "Veri Depolama", value: "3.7 TB", sub: "↑ 680 GB bu ay", icon: "▤" },
+  { label: "Çalışan Personel", value: "18", sub: "↑ 2 yeni", icon: "♚" },
+];
 
-  if (
-    lower.includes("serum") ||
-    lower.includes("hyaluron") ||
-    lower.includes("aydınlık") ||
-    lower.includes("leke") ||
-    lower.includes("ton eşit")
-  ) {
-    return "serum";
-  }
+const sectors: Sector[] = [
+  { name: "İlaç", percent: "%28", icon: "✧" },
+  { name: "Gıda", percent: "%22", icon: "◈" },
+  { name: "Kozmetik", percent: "%18", icon: "◌" },
+  { name: "Biyoteknoloji", percent: "%16", icon: "⬢" },
+  { name: "Malzeme", percent: "%16", icon: "✺" },
+];
 
-  if (
-    lower.includes("temiz") ||
-    lower.includes("yıkama") ||
-    lower.includes("jel") ||
-    lower.includes("cleanser") ||
-    lower.includes("köpük")
-  ) {
-    return "cleanser";
-  }
+const formulas = [
+  {
+    formula: "ΔG = ΔH - TΔS",
+    desc: "Gibbs Serbest Enerjisi",
+  },
+  {
+    formula: "k = A·e^(-Ea/RT)",
+    desc: "Arrhenius Denklemi",
+  },
+  {
+    formula: "E = mc²",
+    desc: "Einstein Denkliği",
+  },
+  {
+    formula: "pH = -log[H⁺]",
+    desc: "pH Hesaplama",
+  },
+];
 
-  return "cream";
-}
+const samples: Sample[] = [
+  {
+    id: "SMP-2024-1568",
+    name: "Ibuprofen Formülasyonu",
+    sector: "İlaç",
+    stage: "Analiz",
+    progress: 76,
+    date: "12 Haz 2024",
+  },
+  {
+    id: "COS-2024-0942",
+    name: "C Vitamini Serumu",
+    sector: "Kozmetik",
+    stage: "Test",
+    progress: 45,
+    date: "14 Haz 2024",
+  },
+  {
+    id: "BIO-2024-1833",
+    name: "Probiyotik Kültür",
+    sector: "Biyoteknoloji",
+    stage: "Validasyon",
+    progress: 92,
+    date: "10 Haz 2024",
+  },
+  {
+    id: "FOOD-2024-2210",
+    name: "Zeytinyağı Kalite Analizi",
+    sector: "Gıda",
+    stage: "Analiz",
+    progress: 63,
+    date: "13 Haz 2024",
+  },
+  {
+    id: "MAT-2024-1107",
+    name: "Kompozit Malzeme",
+    sector: "Malzeme",
+    stage: "Test",
+    progress: 28,
+    date: "18 Haz 2024",
+  },
+];
 
-function createAnalysisAnswer(question: string) {
-  const q = question.toLocaleLowerCase("tr-TR");
+const devices: Device[] = [
+  { name: "HPLC Sistem", model: "Agilent Infinity II", status: "Çalışıyor", icon: "▥" },
+  { name: "GC-MS", model: "Shimadzu QP2020", status: "Çalışıyor", icon: "▧" },
+  { name: "Spektrofotometre", model: "UV-2600", status: "Beklemede", icon: "▣" },
+  { name: "Santrifüj", model: "Eppendorf 5810R", status: "Çalışıyor", icon: "◉" },
+  { name: "pH Metre", model: "Mettler Toledo", status: "Çalışıyor", icon: "◌" },
+  { name: "Biyoreaktör", model: "R-3000", status: "Çalışıyor", icon: "⚗" },
+];
 
-  if (!question.trim()) {
-    return "Analiz etmek istediğin hammaddeyi, ürünü veya formül problemini yazınca burada sade ve teknik bir açıklama oluşacak.";
-  }
+const modules = [
+  { title: "Spektroskopi", desc: "UV, IR, NMR, MS", icon: "⌁" },
+  { title: "Mikrobiyoloji", desc: "Kültür, PCR, ELISA", icon: "✺" },
+  { title: "Kromatografi", desc: "HPLC, GC, IC", icon: "▥" },
+  { title: "Malzeme Testleri", desc: "Mekanik, Fiziksel", icon: "⬡" },
+  { title: "Termal Analiz", desc: "DSC, TGA, DMA", icon: "◒" },
+  { title: "Kimyasal Analiz", desc: "Titrasyon, ICP, AAS", icon: "⚗" },
+];
 
-  if (q.includes("niasinamid") || q.includes("niacinamide")) {
-    return "Niasinamid; bariyer desteği, ton eşitsizliği görünümü ve sebum dengesi için sık kullanılan çok yönlü bir aktiftir. Genelde cilt bakım formüllerinde pH 5-7 aralığında daha konforlu değerlendirilir. Çok asidik sistemlerle birlikte düşünülüyorsa stabilite ve cilt toleransı ayrıca kontrol edilmelidir.";
-  }
-
-  if (q.includes("gliserin") || q.includes("glycerin")) {
-    return "Gliserin güçlü bir humektandır. Su tutarak ciltte nem hissini artırır. Formülde sürüm konforunu artırır ama yüksek oranlarda yapışkanlık hissi verebilir. Krem, serum, temizleyici ve saç bakım ürünlerinde çok kullanışlıdır.";
-  }
-
-  if (q.includes("ksantan") || q.includes("xanthan")) {
-    return "Ksantan gam doğal kökenli bir kıvam ve stabilite destekleyicisidir. Su fazına yapı verir, süspansiyon ve emülsiyon stabilitesine yardım eder. Topaklanmaması için genelde gliserin/propanediol içinde ön dispersiyon yapılıp suya eklenmesi daha temiz sonuç verir.";
-  }
-
-  if (q.includes("ph") || q.includes("pH")) {
-    return "pH, hem cilt uyumu hem de aktif/koruyucu sistem performansı için kritik bir kontroldür. Cilt bakım ürünlerinde çoğunlukla 5.0-6.0 aralığı hedeflenir; temizleyicilerde 5.3-6.5 bandı tercih edilebilir. Nihai karar aktiflere, koruyucuya ve ürün iddiasına göre verilir.";
-  }
-
-  return "Bu alan İnciLab analiz modülü gibi çalışır: hammadde görevi, formüldeki davranışı, pH/çözünürlük/stabilite etkisi ve pratik üretim notlarını sade şekilde yorumlar. Daha özel sonuç için hammadde adı, ürün tipi ve hedef iddiayı birlikte yazmak en iyi sonucu verir.";
-}
+const alerts: AlertItem[] = [
+  {
+    title: "Reaktör R-3000 sıcaklık uyarısı: 37.5°C",
+    desc: "Sınır değerin üzerinde",
+    time: "5 dk önce",
+    type: "warning",
+  },
+  {
+    title: "SMP-2024-1568 örneği için son teslim yaklaşıyor",
+    desc: "Son teslim: 12 Haz 2024",
+    time: "15 dk önce",
+    type: "info",
+  },
+  {
+    title: "GC-MS kolon bakım zamanı geldi",
+    desc: "Önerilen bakım: HP-5MS",
+    time: "1 saat önce",
+    type: "warning",
+  },
+  {
+    title: "Stok uyarısı: Asetonitril seviyesi düşük",
+    desc: "Kalan miktar: 2.1 L",
+    time: "2 saat önce",
+    type: "danger",
+  },
+];
 
 export default function Page() {
-  const [analysisQuestion, setAnalysisQuestion] = useState("");
-  const [analysisAnswer, setAnalysisAnswer] = useState(
-    "Burada analiz sonucu görünecek. Hammadde, INCI, ürün tipi veya formül problemi yazabilirsin."
+  const [activeNav, setActiveNav] = useState("Dashboard");
+  const [message, setMessage] = useState("");
+  const [aiAnswer, setAiAnswer] = useState(
+    "Merhaba Dr. Selin, nasıl yardımcı olabilirim?"
   );
 
-  const [formulaQuestion, setFormulaQuestion] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<ProductType>("cream");
-  const [batchSize, setBatchSize] = useState(100);
-  const [activeFormulaTab, setActiveFormulaTab] = useState<
-    "formula" | "method" | "ingredients" | "properties"
-  >("formula");
+  const activeSamples = useMemo(() => samples.filter((s) => s.progress > 40), []);
 
-  const formula = formulaTemplates[selectedProduct];
+  function askAI(type?: string) {
+    const prompt = type || message;
 
-  const totalPercent = useMemo(() => {
-    return formula.ingredients.reduce((sum, item) => sum + item.percent, 0);
-  }, [formula]);
+    if (!prompt.trim()) {
+      setAiAnswer("Bir analiz, formül, cihaz ya da rapor isteği yazabilirsin.");
+      return;
+    }
 
-  const groupedIngredients = useMemo(() => {
-    const phases: Array<"A" | "B" | "C" | "D"> = ["A", "B", "C", "D"];
+    if (prompt.toLowerCase().includes("analiz")) {
+      setAiAnswer(
+        "Analiz önerisi: Önce numune matriksi, hedef parametre ve cihaz uygunluğu kontrol edilmeli. HPLC için mobil faz, kolon sıcaklığı ve pik ayrımı özellikle izlenmeli."
+      );
+      return;
+    }
 
-    return phases
-      .map((phase) => {
-        const items = formula.ingredients.filter((item) => item.phase === phase);
-        return {
-          phase,
-          title: items[0]?.phaseTitle || `Faz ${phase}`,
-          items,
-        };
-      })
-      .filter((group) => group.items.length > 0);
-  }, [formula]);
+    if (prompt.toLowerCase().includes("formül")) {
+      setAiAnswer(
+        "Formül optimizasyonu için aktif oranı, pH aralığı, viskozite hedefi, koruyucu sistem ve stabilite koşulları birlikte değerlendirilmelidir."
+      );
+      return;
+    }
 
-  function handleAnalysis() {
-    setAnalysisAnswer(createAnalysisAnswer(analysisQuestion));
-  }
+    if (prompt.toLowerCase().includes("rapor")) {
+      setAiAnswer(
+        "Rapor taslağı: Numune bilgisi, metot, cihaz koşulları, gözlem, sonuç, yorum ve kalite kontrol notları ayrı başlıklarla hazırlanabilir."
+      );
+      return;
+    }
 
-  function handleFormulaGenerate() {
-    const detected = detectProductType(formulaQuestion);
-    setSelectedProduct(detected);
-    setActiveFormulaTab("formula");
-  }
-
-  function copyFormulaText() {
-    const lines: string[] = [];
-
-    lines.push("İNCİLAB AR-GE FORMÜL KARTI");
-    lines.push("");
-    lines.push(`Ürün: ${formula.title}`);
-    lines.push(`Ürün tipi: ${formula.productType}`);
-    lines.push(`Açıklama: ${formula.shortDescription}`);
-    lines.push(`Hedef iddia: ${formula.claim}`);
-    lines.push(`Hedef pH: ${formula.targetPh}`);
-    lines.push(`Batch: ${batchSize} g`);
-    lines.push("");
-
-    lines.push("FORMÜL:");
-    groupedIngredients.forEach((group) => {
-      lines.push("");
-      lines.push(group.title);
-      group.items.forEach((item) => {
-        const amount = (item.percent * batchSize) / 100;
-        lines.push(
-          `- ${item.name} | INCI: ${item.inci} | %${formatNumber(
-            item.percent
-          )} | ${formatNumber(amount)} g | ${item.role}`
-        );
-      });
-    });
-
-    lines.push("");
-    lines.push("FAZ FAZ ÜRETİM:");
-    formula.method.forEach((step, index) => {
-      lines.push(`${index + 1}. ${step}`);
-    });
-
-    lines.push("");
-    lines.push("BEKLENEN ÜRÜN ÖZELLİKLERİ:");
-    lines.push(`Görünüm: ${formula.expectedAppearance}`);
-    lines.push(`Renk: ${formula.expectedColor}`);
-    lines.push(`Koku: ${formula.expectedScent}`);
-    lines.push(`Viskozite: ${formula.expectedViscosity}`);
-    lines.push(`Doku/Hissiyat: ${formula.expectedTexture}`);
-    lines.push(`pH: ${formula.targetPh}`);
-    lines.push(`Ambalaj: ${formula.packaging}`);
-    lines.push("");
-    lines.push(`AR-GE Uyarısı: ${formula.warning}`);
-
-    navigator.clipboard.writeText(lines.join("\n"));
-    alert("Formül kartı kopyalandı kankam ✨");
-  }
-
-  function printPage() {
-    window.print();
+    setAiAnswer(
+      "Not aldım. Bu isteği laboratuvar yönetimi, analiz planı ve cihaz durumu açısından değerlendirebilirim."
+    );
   }
 
   return (
-    <main className="incilab-page">
-      <section className="topbar no-print">
-        <div className="brand">
-          <div className="brand-mark">İ</div>
+    <main className="page">
+      <aside className="sidebar">
+        <div className="logoBlock">
+          <div className="logoMark">
+            <span>⬡</span>
+          </div>
           <div>
-            <strong>İnciLab</strong>
-            <span>Kimya & Kozmetik AR-GE Asistanı</span>
+            <div className="logoText">
+              inci<span>Lab</span>
+            </div>
           </div>
         </div>
 
-        <div className="status-pill">Mor-beyaz eski düzen • Formül alanı zengin</div>
-      </section>
-
-      <section className="hero">
-        <div>
-          <p className="eyebrow">İnciLab Workspace</p>
-          <h1>Analiz et, formül oluştur, faz faz geliştir.</h1>
-          <p className="hero-text">
-            Eski sade İnciLab düzeni korunarak formülasyon alanı güçlendirildi:
-            artık hammaddelerin görevini, üretim fazlarını, pH, viskozite, renk,
-            koku ve beklenen görünümü birlikte verir.
-          </p>
-        </div>
-
-        <div className="hero-card">
-          <span>Aktif Modül</span>
-          <strong>Formülasyon</strong>
-          <small>100 g / ölçekli AR-GE kartı</small>
-        </div>
-      </section>
-
-      <section className="workspace">
-        <div className="left-column">
-          <section className="card no-print">
-            <div className="section-head">
-              <div>
-                <p className="mini-title">Analiz Sor</p>
-                <h2>Hammadde / INCI analizi</h2>
-              </div>
-            </div>
-
-            <textarea
-              value={analysisQuestion}
-              onChange={(event) => setAnalysisQuestion(event.target.value)}
-              placeholder="Örn: Niasinamid ne işe yarar? pH aralığı nasıl olmalı? Ksantan gam neden topaklanır?"
-              className="input-area"
-            />
-
-            <button type="button" className="primary-button" onClick={handleAnalysis}>
-              Analiz Et
+        <nav className="nav">
+          {navItems.map((item) => (
+            <button
+              key={item.label}
+              className={activeNav === item.label ? "navItem active" : "navItem"}
+              onClick={() => setActiveNav(item.label)}
+            >
+              <span>{item.icon}</span>
+              {item.label}
             </button>
-          </section>
+          ))}
+        </nav>
 
-          <section className="card">
-            <div className="section-head">
-              <div>
-                <p className="mini-title">Formül Sor</p>
-                <h2>Zenginleştirilmiş formülasyon alanı</h2>
-              </div>
-
-              <div className="percent-pill">
-                Toplam: %{formatNumber(totalPercent)}
-              </div>
-            </div>
-
-            <textarea
-              value={formulaQuestion}
-              onChange={(event) => setFormulaQuestion(event.target.value)}
-              placeholder="Örn: Bariyer destekleyici krem istiyorum. Faz faz anlat, aktiflerin ne işe yaradığını, pH, viskozite, renk, koku ve görünümü yaz."
-              className="input-area"
-            />
-
-            <div className="form-row no-print">
-              <div>
-                <label>Ürün tipi</label>
-                <select
-                  value={selectedProduct}
-                  onChange={(event) =>
-                    setSelectedProduct(event.target.value as ProductType)
-                  }
-                >
-                  <option value="cream">Bariyer Destekleyici Krem</option>
-                  <option value="serum">Nem & Aydınlık Serum</option>
-                  <option value="cleanser">Nazik Jel Temizleyici</option>
-                </select>
-              </div>
-
-              <div>
-                <label>Batch: {batchSize} g</label>
-                <input
-                  type="range"
-                  min={50}
-                  max={1000}
-                  step={50}
-                  value={batchSize}
-                  onChange={(event) => setBatchSize(Number(event.target.value))}
-                />
-              </div>
-            </div>
-
-            <div className="button-row no-print">
-              <button
-                type="button"
-                className="primary-button"
-                onClick={handleFormulaGenerate}
-              >
-                Formülü Oluştur
-              </button>
-              <button type="button" className="soft-button" onClick={copyFormulaText}>
-                Kopyala
-              </button>
-              <button type="button" className="soft-button" onClick={printPage}>
-                PDF / Yazdır
-              </button>
-            </div>
-          </section>
-
-          <section className="trend-card no-print">
-            <p className="mini-title">Trend Bileşenler</p>
-            <div className="chips">
-              <span>Niasinamid</span>
-              <span>Pantenol</span>
-              <span>Seramid</span>
-              <span>Betaine</span>
-              <span>Hyaluronik Asit</span>
-              <span>Azelaik Asit</span>
-            </div>
-          </section>
+        <div className="profileCard">
+          <div className="avatar">SA</div>
+          <div>
+            <strong>Dr. Selin Acar</strong>
+            <p>Kalite Yöneticisi</p>
+          </div>
+          <span className="chevron">⌄</span>
         </div>
 
-        <aside className="right-column">
-          <section className="result-card no-print">
-            <p className="mini-title">Analiz Sonucu</p>
-            <p>{analysisAnswer}</p>
-          </section>
+        <div className="premiumCard">
+          <div className="premiumIcon">∞</div>
+          <p>Bilimin zarafetle buluştuğu yer.</p>
+          <small>İnciLab Premium Lab Suite</small>
+          <small>v2.4.1</small>
+        </div>
+      </aside>
 
-          <section className="formula-card print-section">
-            <div className="formula-header">
+      <section className="main">
+        <header className="header">
+          <div>
+            <h1>Hoş geldiniz, Dr. Selin ✨</h1>
+            <p>İnciLab Premium Laboratuvar Yönetim Paneli</p>
+          </div>
+
+          <div className="headerActions">
+            <div className="search">
+              <span>⌕</span>
+              <input placeholder="Ara: örnek, analiz, cihaz, formül..." />
+            </div>
+            <button className="iconBtn">🔔</button>
+            <button className="iconBtn">?</button>
+            <button className="iconBtn">☼</button>
+          </div>
+        </header>
+
+        <section className="stats">
+          {stats.map((stat) => (
+            <article className="statCard" key={stat.label}>
+              <div className="statIcon">{stat.icon}</div>
               <div>
-                <p className="mini-title">Detaylı AR-GE Formül Kartı</p>
-                <h2>{formula.title}</h2>
-                <p>{formula.shortDescription}</p>
+                <strong>{stat.value}</strong>
+                <p>{stat.label}</p>
+                <small>{stat.sub}</small>
               </div>
+            </article>
+          ))}
+        </section>
 
-              <div className="ph-box">
-                <span>Hedef pH</span>
-                <strong>{formula.targetPh}</strong>
-              </div>
+        <section className="dashboardGrid">
+          <div className="leftArea">
+            <div className="topGrid">
+              <section className="card sectorsCard">
+                <div className="cardTitle">
+                  <h2>Aktif Sektörler</h2>
+                </div>
+
+                <div className="sectorList">
+                  {sectors.map((sector) => (
+                    <div className="sectorMini" key={sector.name}>
+                      <div className="sectorIcon">{sector.icon}</div>
+                      <span>{sector.name}</span>
+                      <strong>{sector.percent}</strong>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="card flowCard">
+                <div className="cardTitle">
+                  <h2>Deney Akışı</h2>
+                </div>
+
+                <div className="waveChart">
+                  <svg viewBox="0 0 520 190" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="goldLine" x1="0" x2="1">
+                        <stop offset="0%" stopColor="#d7b46a" />
+                        <stop offset="55%" stopColor="#a77a35" />
+                        <stop offset="100%" stopColor="#e6cf9d" />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d="M0,122 C45,88 72,150 120,112 C168,76 180,126 230,92 C285,50 310,166 360,108 C400,64 430,72 520,88"
+                      fill="none"
+                      stroke="url(#goldLine)"
+                      strokeWidth="3"
+                    />
+                    <path
+                      d="M0,138 C45,104 72,166 120,128 C168,92 180,142 230,108 C285,66 310,182 360,124 C400,80 430,88 520,104"
+                      fill="none"
+                      stroke="#e9ddc9"
+                      strokeWidth="2"
+                      strokeDasharray="5 6"
+                    />
+                    {[60, 145, 230, 310, 410].map((x, i) => (
+                      <circle
+                        key={x}
+                        cx={x}
+                        cy={[108, 118, 88, 122, 78][i]}
+                        r="5"
+                        fill="#b98b47"
+                      />
+                    ))}
+                  </svg>
+
+                  <div className="days">
+                    <span>Pazartesi</span>
+                    <span>Salı</span>
+                    <span>Çarşamba</span>
+                    <span>Perşembe</span>
+                    <span>Cuma</span>
+                    <span>Bugün</span>
+                    <span>Yarın</span>
+                  </div>
+                </div>
+              </section>
             </div>
 
-            <div className="claim-box">
-              <strong>Hedef ürün iddiası</strong>
-              <p>{formula.claim}</p>
+            <div className="middleGrid">
+              <section className="card formulasCard">
+                <div className="cardTitle">
+                  <h2>Temel Formüller</h2>
+                </div>
+
+                <div className="formulaList">
+                  {formulas.map((item) => (
+                    <div className="formulaItem" key={item.formula}>
+                      <div>
+                        <strong>{item.formula}</strong>
+                        <p>{item.desc}</p>
+                      </div>
+                      <button>Kopyala</button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="card samplesCard">
+                <div className="cardTitle">
+                  <h2>Aktif Örnekler</h2>
+                </div>
+
+                <div className="sampleTable">
+                  <div className="sampleHeader">
+                    <span>Örnek ID</span>
+                    <span>Örnek Adı</span>
+                    <span>Sektör</span>
+                    <span>Aşama</span>
+                    <span>İlerleme</span>
+                    <span>Bitiş Tarihi</span>
+                  </div>
+
+                  {samples.map((sample) => (
+                    <div className="sampleRow" key={sample.id}>
+                      <span>{sample.id}</span>
+                      <span>{sample.name}</span>
+                      <span>
+                        <i /> {sample.sector}
+                      </span>
+                      <span>{sample.stage}</span>
+                      <span>
+                        <b className="progressTrack">
+                          <b style={{ width: `${sample.progress}%` }} />
+                        </b>
+                        %{sample.progress}
+                      </span>
+                      <span>{sample.date}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
             </div>
 
-            <nav className="tabs no-print">
-              <button
-                type="button"
-                className={activeFormulaTab === "formula" ? "active" : ""}
-                onClick={() => setActiveFormulaTab("formula")}
-              >
-                Formül
-              </button>
-              <button
-                type="button"
-                className={activeFormulaTab === "method" ? "active" : ""}
-                onClick={() => setActiveFormulaTab("method")}
-              >
-                Faz Faz Yapılış
-              </button>
-              <button
-                type="button"
-                className={activeFormulaTab === "ingredients" ? "active" : ""}
-                onClick={() => setActiveFormulaTab("ingredients")}
-              >
-                Hammaddeler
-              </button>
-              <button
-                type="button"
-                className={activeFormulaTab === "properties" ? "active" : ""}
-                onClick={() => setActiveFormulaTab("properties")}
-              >
-                Özellikler
-              </button>
-            </nav>
+            <div className="bottomGrid">
+              <section className="card overviewCard">
+                <div className="cardTitle">
+                  <h2>Deney Genel Bakış</h2>
+                </div>
 
-            {activeFormulaTab === "formula" && (
-              <div className="phase-stack">
-                {groupedIngredients.map((group) => (
-                  <div className="phase-box" key={group.phase}>
-                    <h3>{group.title}</h3>
+                <div className="overviewContent">
+                  <div className="moleculeArt">
+                    <div className="mNode n1" />
+                    <div className="mNode n2" />
+                    <div className="mNode n3" />
+                    <div className="mNode n4" />
+                    <div className="mNode n5" />
+                    <span className="bond b1" />
+                    <span className="bond b2" />
+                    <span className="bond b3" />
+                    <span className="bond b4" />
+                  </div>
 
-                    <div className="table-wrap">
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Hammadde</th>
-                            <th>INCI</th>
-                            <th>%</th>
-                            <th>{batchSize} g için</th>
-                            <th>Görev</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {group.items.map((item) => {
-                            const amount = (item.percent * batchSize) / 100;
-
-                            return (
-                              <tr key={`${item.phase}-${item.name}`}>
-                                <td>{item.name}</td>
-                                <td>{item.inci}</td>
-                                <td>%{formatNumber(item.percent)}</td>
-                                <td>{formatNumber(amount)} g</td>
-                                <td>{item.role}</td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                  <div className="donut">
+                    <div className="donutInner">
+                      <span>Toplam Deney</span>
+                      <strong>236</strong>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
 
-            {activeFormulaTab === "method" && (
-              <ol className="method-list">
-                {formula.method.map((step, index) => (
-                  <li key={step}>
-                    <span>{index + 1}</span>
-                    <p>{step}</p>
-                  </li>
-                ))}
-              </ol>
-            )}
-
-            {activeFormulaTab === "ingredients" && (
-              <div className="ingredient-grid">
-                {formula.ingredients.map((item) => (
-                  <article className="ingredient-card" key={`${item.phase}-${item.name}`}>
-                    <span>Faz {item.phase}</span>
-                    <h3>{item.name}</h3>
-                    <small>{item.inci}</small>
+                  <div className="legend">
                     <p>
-                      <b>Görevi:</b> {item.role}
+                      <i className="green" /> Tamamlanan <b>96</b>
                     </p>
-                    <p>{item.detail}</p>
-                    <div className="note">
-                      <b>Üretim notu:</b> {item.processNote}
-                    </div>
+                    <p>
+                      <i className="gold" /> Devam Ediyor <b>102</b>
+                    </p>
+                    <p>
+                      <i className="soft" /> Beklemede <b>24</b>
+                    </p>
+                    <p>
+                      <i className="red" /> İptal Edildi <b>14</b>
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <section className="card performanceCard">
+                <div className="cardTitle">
+                  <h2>Deney Performansı</h2>
+                  <button>Bu Hafta⌄</button>
+                </div>
+
+                <div className="perfGrid">
+                  <InfoBox title="Ortalama Süre" value="4.7 gün" sub="↓ 0.8 gün" />
+                  <InfoBox title="Başarı Oranı" value="94.2%" sub="↑ 2.1%" />
+                  <InfoBox title="Tekrar Analiz" value="%6.3" sub="↓ 1.2%" />
+                  <InfoBox title="Maliyet Verimliliği" value="₺1.24M" sub="↑ 8.4%" />
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <div className="rightArea">
+            <section className="reactorHero">
+              <div className="reactorInfo">
+                <h3>Reaktör R-3000</h3>
+                <p>
+                  Durum: <span>Çalışıyor</span>
+                </p>
+                <p>Sıcaklık: 37.2 °C</p>
+                <p>pH: 7.02</p>
+                <p>Karıştırma: 420 rpm</p>
+                <button>Detayları Gör →</button>
+              </div>
+
+              <div className="reactorVisual">
+                <div className="ring ring1" />
+                <div className="ring ring2" />
+                <div className="tank">
+                  <div className="tankCap" />
+                  <div className="tankBody">
+                    <div className="liquid" />
+                  </div>
+                  <div className="tankBase" />
+                </div>
+              </div>
+            </section>
+
+            <section className="card devicesCard">
+              <div className="cardTitle">
+                <h2>Cihaz Durumu</h2>
+                <button>Tümü⌄</button>
+              </div>
+
+              <div className="deviceGrid">
+                {devices.map((device) => (
+                  <article key={device.name} className="deviceCard">
+                    <div className="deviceImage">{device.icon}</div>
+                    <strong>{device.name}</strong>
+                    <small>{device.model}</small>
+                    <p className={device.status === "Çalışıyor" ? "ok" : "wait"}>
+                      ● {device.status}
+                    </p>
                   </article>
                 ))}
               </div>
-            )}
+            </section>
 
-            {activeFormulaTab === "properties" && (
-              <div className="property-grid">
-                <InfoCard title="Ürün tipi" value={formula.productType} />
-                <InfoCard title="Beklenen pH" value={formula.targetPh} />
-                <InfoCard title="Viskozite" value={formula.expectedViscosity} />
-                <InfoCard title="Renk" value={formula.expectedColor} />
-                <InfoCard title="Görünüm" value={formula.expectedAppearance} />
-                <InfoCard title="Koku" value={formula.expectedScent} />
-                <InfoCard title="Doku / Hissiyat" value={formula.expectedTexture} />
-                <InfoCard title="Ambalaj" value={formula.packaging} />
+            <section className="card modulesCard">
+              <div className="cardTitle">
+                <h2>Analiz Modülleri</h2>
+                <button>Tümü⌄</button>
               </div>
-            )}
 
-            <div className="warning-box">
-              <strong>AR-GE Uyarısı</strong>
-              <p>{formula.warning}</p>
+              <div className="moduleGrid">
+                {modules.map((module) => (
+                  <div className="moduleItem" key={module.title}>
+                    <div>{module.icon}</div>
+                    <strong>{module.title}</strong>
+                    <span>{module.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <div className="rightBottomGrid">
+              <section className="card alertsCard">
+                <div className="cardTitle">
+                  <h2>Son Uyarılar</h2>
+                  <button>Tümü⌄</button>
+                </div>
+
+                <div className="alertList">
+                  {alerts.map((alert) => (
+                    <article key={alert.title} className={`alertItem ${alert.type}`}>
+                      <div className="alertIcon">
+                        {alert.type === "info"
+                          ? "i"
+                          : alert.type === "danger"
+                          ? "!"
+                          : alert.type === "success"
+                          ? "✓"
+                          : "⚠"}
+                      </div>
+                      <div>
+                        <strong>{alert.title}</strong>
+                        <p>{alert.desc}</p>
+                      </div>
+                      <span>{alert.time}</span>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              <section className="card aiCard">
+                <div className="cardTitle">
+                  <h2>AI Asistan</h2>
+                  <span className="beta">Beta</span>
+                </div>
+
+                <p className="aiText">{aiAnswer}</p>
+
+                <div className="quickActions">
+                  <button onClick={() => askAI("analiz önerisi al")}>
+                    Analiz önerisi al
+                  </button>
+                  <button onClick={() => askAI("veri analizi yap")}>
+                    Veri analizi yap
+                  </button>
+                  <button onClick={() => askAI("rapor oluştur")}>
+                    Rapor oluştur
+                  </button>
+                  <button onClick={() => askAI("metot karşılaştır")}>
+                    Metot karşılaştır
+                  </button>
+                  <button onClick={() => askAI("literatür tara")}>
+                    Literatür tara
+                  </button>
+                  <button onClick={() => askAI("soru sor")}>Soru sor</button>
+                </div>
+
+                <div className="chatInput">
+                  <input
+                    value={message}
+                    onChange={(event) => setMessage(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") askAI();
+                    }}
+                    placeholder="Bir soru sorun veya komut yazın..."
+                  />
+                  <button onClick={() => askAI()}>➜</button>
+                </div>
+              </section>
             </div>
-          </section>
-        </aside>
+          </div>
+        </section>
       </section>
 
       <style>{`
@@ -956,625 +625,1089 @@ export default function Page() {
         body {
           margin: 0;
           background:
-            radial-gradient(circle at top left, rgba(168, 85, 247, 0.18), transparent 34%),
-            radial-gradient(circle at top right, rgba(236, 72, 153, 0.12), transparent 28%),
-            linear-gradient(180deg, #fdfbff 0%, #faf5ff 48%, #ffffff 100%);
-          color: #241233;
+            radial-gradient(circle at top right, rgba(222, 204, 168, 0.25), transparent 34%),
+            linear-gradient(135deg, #f8f4ed 0%, #fffdf9 38%, #f5efe4 100%);
+          color: #312b25;
         }
 
-        .incilab-page {
+        button,
+        input {
+          font: inherit;
+        }
+
+        .page {
           min-height: 100vh;
-          padding: 24px;
+          display: grid;
+          grid-template-columns: 290px 1fr;
           font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
-        .topbar {
+        .sidebar {
+          min-height: 100vh;
+          padding: 28px 22px;
+          background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(251, 246, 238, 0.78)),
+            radial-gradient(circle at top, rgba(202, 169, 105, 0.18), transparent 42%);
+          border-right: 1px solid rgba(166, 137, 90, 0.16);
           display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 16px;
-          margin-bottom: 24px;
+          flex-direction: column;
+          gap: 22px;
         }
 
-        .brand {
+        .logoBlock {
           display: flex;
           align-items: center;
           gap: 12px;
+          padding: 6px 8px 18px;
         }
 
-        .brand-mark {
-          width: 44px;
-          height: 44px;
-          border-radius: 16px;
+        .logoMark {
+          width: 42px;
+          height: 42px;
+          border-radius: 14px;
           display: grid;
           place-items: center;
-          color: white;
-          font-weight: 900;
-          background: linear-gradient(135deg, #7e22ce, #c026d3, #ec4899);
-          box-shadow: 0 16px 34px rgba(126, 34, 206, 0.22);
+          color: #a67b37;
+          border: 1px solid rgba(166, 123, 55, 0.36);
+          background: linear-gradient(145deg, #fffefb, #f2eadb);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6), 0 12px 30px rgba(166,123,55,0.12);
         }
 
-        .brand strong {
-          display: block;
-          font-size: 18px;
-          color: #2b1244;
+        .logoText {
+          font-size: 34px;
+          line-height: 1;
+          font-weight: 700;
+          letter-spacing: -0.06em;
+          color: #665842;
         }
 
-        .brand span {
-          display: block;
-          font-size: 13px;
-          color: #7c6a8a;
+        .logoText span {
+          color: #c49a58;
         }
 
-        .status-pill,
-        .percent-pill {
-          width: fit-content;
-          border-radius: 999px;
-          padding: 10px 14px;
-          background: rgba(255, 255, 255, 0.8);
-          border: 1px solid rgba(126, 34, 206, 0.13);
-          color: #7e22ce;
-          font-size: 13px;
-          font-weight: 800;
-        }
-
-        .hero {
+        .nav {
           display: grid;
-          grid-template-columns: minmax(0, 1fr) 280px;
-          gap: 18px;
-          margin-bottom: 20px;
+          gap: 8px;
         }
 
-        .eyebrow,
-        .mini-title {
-          margin: 0 0 8px;
-          color: #8b5cf6;
-          font-size: 12px;
-          font-weight: 900;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
+        .navItem {
+          width: 100%;
+          height: 46px;
+          border: 0;
+          border-radius: 15px;
+          background: transparent;
+          display: flex;
+          align-items: center;
+          gap: 13px;
+          padding: 0 14px;
+          color: #635a50;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 600;
+          text-align: left;
         }
 
-        h1,
-        h2,
-        h3,
-        p {
-          margin-top: 0;
-        }
-
-        h1 {
-          max-width: 860px;
-          margin-bottom: 14px;
-          color: #2b1244;
-          font-size: clamp(38px, 5vw, 68px);
-          line-height: 0.95;
-          letter-spacing: -0.065em;
-        }
-
-        h2 {
-          margin-bottom: 8px;
-          color: #2b1244;
-          font-size: 24px;
-          letter-spacing: -0.035em;
-        }
-
-        h3 {
-          margin-bottom: 8px;
-          color: #32164f;
+        .navItem span {
+          width: 23px;
+          color: #746a5f;
           font-size: 17px;
         }
 
-        .hero-text {
-          max-width: 850px;
-          color: #6d5b7b;
-          line-height: 1.7;
+        .navItem.active {
+          color: white;
+          background: linear-gradient(135deg, #c7a263, #dcb977);
+          box-shadow: 0 14px 28px rgba(174, 126, 48, 0.24);
         }
 
-        .hero-card,
-        .card,
-        .result-card,
-        .formula-card,
-        .trend-card {
-          background: rgba(255, 255, 255, 0.82);
-          border: 1px solid rgba(126, 34, 206, 0.13);
-          border-radius: 30px;
-          box-shadow: 0 20px 60px rgba(88, 28, 135, 0.08);
-          backdrop-filter: blur(16px);
+        .navItem.active span {
+          color: white;
         }
 
-        .hero-card {
-          padding: 24px;
+        .profileCard,
+        .premiumCard {
+          border: 1px solid rgba(166, 137, 90, 0.18);
+          background: rgba(255,255,255,0.68);
+          border-radius: 20px;
+          padding: 14px;
+          box-shadow: 0 14px 35px rgba(78, 58, 28, 0.06);
+        }
+
+        .profileCard {
+          margin-top: auto;
+          display: grid;
+          grid-template-columns: 42px 1fr 18px;
+          align-items: center;
+          gap: 11px;
+        }
+
+        .avatar {
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          background: linear-gradient(135deg, #f7efe0, #c9a56a);
+          color: #5a4323;
+          font-weight: 800;
+        }
+
+        .profileCard strong {
+          display: block;
+          font-size: 14px;
+        }
+
+        .profileCard p,
+        .premiumCard small {
+          margin: 3px 0 0;
+          color: #8a8175;
+          font-size: 12px;
+        }
+
+        .chevron {
+          color: #9b927f;
+        }
+
+        .premiumCard {
+          min-height: 150px;
           display: flex;
           flex-direction: column;
           justify-content: center;
-          min-height: 180px;
+          gap: 8px;
+          background:
+            radial-gradient(circle at bottom right, rgba(210, 174, 106, 0.22), transparent 46%),
+            rgba(255,255,255,0.62);
         }
 
-        .hero-card span {
-          color: #7c6a8a;
-          font-size: 13px;
-          font-weight: 800;
-        }
-
-        .hero-card strong {
-          margin: 6px 0;
-          color: #7e22ce;
+        .premiumIcon {
           font-size: 34px;
-          letter-spacing: -0.04em;
+          color: #c49a58;
         }
 
-        .hero-card small {
-          color: #7c6a8a;
+        .premiumCard p {
+          margin: 0;
+          color: #6c5b40;
+          font-size: 15px;
+          line-height: 1.5;
         }
 
-        .workspace {
-          display: grid;
-          grid-template-columns: minmax(340px, 0.82fr) minmax(0, 1.18fr);
-          gap: 18px;
-          align-items: start;
+        .main {
+          padding: 30px 30px 34px;
+          overflow: hidden;
         }
 
-        .left-column,
-        .right-column {
-          display: grid;
-          gap: 18px;
-        }
-
-        .card,
-        .result-card,
-        .formula-card,
-        .trend-card {
-          padding: 22px;
-        }
-
-        .section-head,
-        .formula-header {
+        .header {
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
-          gap: 14px;
-          margin-bottom: 16px;
+          gap: 22px;
+          margin-bottom: 24px;
         }
 
-        .input-area {
+        .header h1 {
+          margin: 0 0 6px;
+          color: #2d2923;
+          font-size: 26px;
+          line-height: 1.1;
+          letter-spacing: -0.04em;
+        }
+
+        .header p {
+          margin: 0;
+          color: #8a8175;
+          font-size: 14px;
+        }
+
+        .headerActions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .search {
+          width: 370px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 0 14px;
+          border: 1px solid rgba(166, 137, 90, 0.18);
+          border-radius: 17px;
+          background: rgba(255,255,255,0.76);
+          box-shadow: 0 14px 34px rgba(78, 58, 28, 0.05);
+        }
+
+        .search span {
+          color: #a48655;
+        }
+
+        .search input {
           width: 100%;
-          min-height: 104px;
-          resize: vertical;
-          border: 1px solid rgba(126, 34, 206, 0.16);
-          outline: none;
-          border-radius: 22px;
-          background: white;
-          padding: 14px 15px;
-          color: #2b1244;
-          font: inherit;
-          line-height: 1.55;
-        }
-
-        .input-area:focus,
-        select:focus {
-          border-color: rgba(126, 34, 206, 0.48);
-          box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.12);
-        }
-
-        .primary-button,
-        .soft-button,
-        .tabs button {
           border: 0;
+          outline: 0;
+          background: transparent;
+          color: #3b352e;
+        }
+
+        .iconBtn {
+          width: 43px;
+          height: 43px;
+          border: 1px solid rgba(166, 137, 90, 0.18);
+          background: rgba(255,255,255,0.76);
+          border-radius: 14px;
           cursor: pointer;
-          font: inherit;
-          transition: transform 0.18s ease, box-shadow 0.18s ease;
+          color: #6d604f;
+          box-shadow: 0 12px 26px rgba(78, 58, 28, 0.05);
         }
 
-        .primary-button {
-          margin-top: 12px;
-          width: 100%;
+        .stats {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 14px;
+          margin-bottom: 18px;
+        }
+
+        .statCard,
+        .card,
+        .reactorHero {
+          border: 1px solid rgba(166, 137, 90, 0.16);
+          background: rgba(255, 255, 255, 0.72);
+          border-radius: 22px;
+          box-shadow:
+            0 18px 45px rgba(87, 64, 32, 0.07),
+            inset 0 1px 0 rgba(255,255,255,0.72);
+          backdrop-filter: blur(18px);
+        }
+
+        .statCard {
+          min-height: 104px;
+          padding: 20px;
+          display: flex;
+          align-items: center;
+          gap: 17px;
+        }
+
+        .statIcon {
+          width: 54px;
+          height: 54px;
           border-radius: 18px;
-          padding: 14px 16px;
-          color: white;
-          font-weight: 900;
-          background: linear-gradient(135deg, #7e22ce, #c026d3, #ec4899);
-          box-shadow: 0 16px 34px rgba(126, 34, 206, 0.2);
+          display: grid;
+          place-items: center;
+          color: #b1843f;
+          font-size: 24px;
+          border: 1px solid rgba(166, 137, 90, 0.18);
+          background: linear-gradient(145deg, #fffdf8, #f5ecdc);
         }
 
-        .primary-button:hover,
-        .soft-button:hover,
-        .tabs button:hover {
-          transform: translateY(-1px);
+        .statCard strong {
+          display: block;
+          color: #27231d;
+          font-size: 28px;
+          letter-spacing: -0.04em;
         }
 
-        .form-row {
+        .statCard p {
+          margin: 3px 0 0;
+          color: #6a6259;
+          font-size: 14px;
+        }
+
+        .statCard small {
+          display: block;
+          margin-top: 6px;
+          color: #32a165;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .dashboardGrid {
+          display: grid;
+          grid-template-columns: 1.08fr 0.92fr;
+          gap: 18px;
+        }
+
+        .leftArea,
+        .rightArea {
+          display: grid;
+          gap: 18px;
+          align-content: start;
+        }
+
+        .topGrid {
+          display: grid;
+          grid-template-columns: 0.86fr 1.14fr;
+          gap: 18px;
+        }
+
+        .middleGrid {
+          display: grid;
+          grid-template-columns: 0.46fr 1fr;
+          gap: 18px;
+        }
+
+        .bottomGrid {
+          display: grid;
+          grid-template-columns: 1fr 0.46fr;
+          gap: 18px;
+        }
+
+        .rightBottomGrid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 12px;
-          margin-top: 14px;
+          gap: 18px;
         }
 
-        label {
-          display: block;
-          margin-bottom: 7px;
-          color: #7c6a8a;
-          font-size: 12px;
-          font-weight: 900;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
+        .card {
+          padding: 18px;
         }
 
-        select {
-          width: 100%;
-          border: 1px solid rgba(126, 34, 206, 0.16);
-          outline: none;
-          border-radius: 18px;
-          background: white;
-          padding: 13px 14px;
-          color: #2b1244;
-          font: inherit;
-        }
-
-        input[type="range"] {
-          width: 100%;
-          accent-color: #8b5cf6;
-        }
-
-        .button-row {
-          display: grid;
-          grid-template-columns: 1fr 110px 110px;
-          gap: 10px;
-          margin-top: 12px;
-        }
-
-        .button-row .primary-button {
-          margin-top: 0;
-        }
-
-        .soft-button {
-          border-radius: 18px;
-          padding: 14px 12px;
-          background: #f5edff;
-          color: #7e22ce;
-          font-weight: 900;
-        }
-
-        .trend-card {
-          background: rgba(255, 255, 255, 0.68);
-        }
-
-        .chips {
+        .cardTitle {
           display: flex;
-          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          margin-bottom: 14px;
+        }
+
+        .cardTitle h2 {
+          margin: 0;
+          color: #332d24;
+          font-size: 16px;
+          letter-spacing: -0.02em;
+        }
+
+        .cardTitle button {
+          border: 0;
+          background: #f4ecdd;
+          color: #9b7134;
+          border-radius: 10px;
+          padding: 6px 10px;
+          cursor: pointer;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .sectorList {
+          display: grid;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        .sectorMini {
+          min-height: 105px;
+          border: 1px solid rgba(166, 137, 90, 0.13);
+          background: rgba(255,255,255,0.56);
+          border-radius: 18px;
+          display: grid;
+          place-items: center;
+          text-align: center;
+          padding: 12px 8px;
+        }
+
+        .sectorIcon {
+          width: 42px;
+          height: 42px;
+          border-radius: 15px;
+          display: grid;
+          place-items: center;
+          background: #f6eedf;
+          color: #af8548;
+          font-size: 18px;
+        }
+
+        .sectorMini span {
+          color: #544d44;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .sectorMini strong {
+          color: #9a8464;
+          font-size: 12px;
+        }
+
+        .waveChart {
+          height: 180px;
+          position: relative;
+        }
+
+        .waveChart svg {
+          width: 100%;
+          height: 140px;
+        }
+
+        .days {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
           gap: 8px;
-        }
-
-        .chips span {
-          border-radius: 999px;
-          background: #f3e8ff;
-          color: #7e22ce;
-          padding: 9px 12px;
-          font-size: 13px;
-          font-weight: 800;
-        }
-
-        .result-card p:last-child {
-          margin-bottom: 0;
-          color: #4b315f;
-          line-height: 1.7;
-        }
-
-        .formula-card {
-          overflow: hidden;
-        }
-
-        .formula-header p {
-          margin-bottom: 0;
-          color: #6d5b7b;
-          line-height: 1.6;
-        }
-
-        .ph-box {
-          min-width: 132px;
-          border-radius: 22px;
-          background: #f3e8ff;
-          padding: 14px;
-          color: #7e22ce;
+          color: #8f8679;
+          font-size: 11px;
           text-align: center;
         }
 
-        .ph-box span {
-          display: block;
-          font-size: 12px;
-          font-weight: 900;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
+        .formulaList {
+          display: grid;
+          gap: 9px;
         }
 
-        .ph-box strong {
-          display: block;
-          margin-top: 4px;
-          font-size: 20px;
-        }
-
-        .claim-box {
-          margin: 14px 0;
-          border-left: 5px solid #a855f7;
-          border-radius: 22px;
-          background: linear-gradient(135deg, #faf5ff, #fff);
-          padding: 16px;
-        }
-
-        .claim-box strong {
-          color: #7e22ce;
-        }
-
-        .claim-box p {
-          margin: 8px 0 0;
-          color: #4b315f;
-          line-height: 1.6;
-        }
-
-        .tabs {
+        .formulaItem {
+          border: 1px solid rgba(166, 137, 90, 0.12);
+          border-radius: 14px;
+          padding: 10px 11px;
           display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin: 16px 0;
-        }
-
-        .tabs button {
-          border-radius: 999px;
-          padding: 10px 13px;
-          background: #f3e8ff;
-          color: #7e22ce;
-          font-size: 13px;
-          font-weight: 900;
-        }
-
-        .tabs button.active {
-          color: white;
-          background: linear-gradient(135deg, #7e22ce, #c026d3);
-          box-shadow: 0 12px 25px rgba(126, 34, 206, 0.18);
-        }
-
-        .phase-stack {
-          display: grid;
-          gap: 14px;
-        }
-
-        .phase-box {
-          overflow: hidden;
-          border: 1px solid rgba(126, 34, 206, 0.12);
-          border-radius: 24px;
-          background: #fff;
-        }
-
-        .phase-box h3 {
-          margin: 0;
-          background: #f3e8ff;
-          color: #6b21a8;
-          padding: 13px 15px;
-        }
-
-        .table-wrap {
-          overflow-x: auto;
-        }
-
-        table {
-          width: 100%;
-          min-width: 760px;
-          border-collapse: collapse;
-        }
-
-        th,
-        td {
-          border-bottom: 1px solid rgba(126, 34, 206, 0.09);
-          padding: 12px;
-          text-align: left;
-          vertical-align: top;
-          font-size: 13px;
-        }
-
-        th {
-          background: rgba(250, 245, 255, 0.65);
-          color: #7e22ce;
-          font-size: 11px;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-        }
-
-        td {
-          color: #432457;
-          line-height: 1.45;
-        }
-
-        .method-list {
-          display: grid;
+          justify-content: space-between;
+          align-items: center;
           gap: 10px;
-          margin: 0;
-          padding: 0;
-          list-style: none;
+          background: rgba(255,255,255,0.54);
         }
 
-        .method-list li {
+        .formulaItem strong {
+          display: block;
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: 16px;
+          color: #382f22;
+        }
+
+        .formulaItem p {
+          margin: 3px 0 0;
+          color: #928778;
+          font-size: 11px;
+        }
+
+        .formulaItem button {
+          border: 1px solid rgba(166, 137, 90, 0.14);
+          background: #fbf6ed;
+          color: #9c753e;
+          border-radius: 9px;
+          padding: 7px 9px;
+          cursor: pointer;
+          font-size: 11px;
+          font-weight: 700;
+        }
+
+        .sampleTable {
           display: grid;
-          grid-template-columns: 38px 1fr;
-          gap: 12px;
+          gap: 2px;
+        }
+
+        .sampleHeader,
+        .sampleRow {
+          display: grid;
+          grid-template-columns: 1.05fr 1.2fr 0.7fr 0.6fr 0.8fr 0.8fr;
+          gap: 8px;
+          align-items: center;
+          padding: 9px 10px;
+        }
+
+        .sampleHeader {
+          color: #8f8679;
+          font-size: 11px;
+          font-weight: 800;
+          border-bottom: 1px solid rgba(166, 137, 90, 0.12);
+        }
+
+        .sampleRow {
+          color: #554c42;
+          font-size: 12px;
+          border-bottom: 1px solid rgba(166, 137, 90, 0.08);
+        }
+
+        .sampleRow span:nth-child(1) {
+          color: #8d6a39;
+          font-weight: 800;
+        }
+
+        .sampleRow i {
+          display: inline-block;
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #c9a66e;
+          margin-right: 5px;
+        }
+
+        .progressTrack {
+          display: inline-block;
+          width: 58px;
+          height: 7px;
+          margin-right: 7px;
+          border-radius: 999px;
+          background: #efe6d7;
+          vertical-align: middle;
+          overflow: hidden;
+        }
+
+        .progressTrack b {
+          display: block;
+          height: 100%;
+          background: linear-gradient(90deg, #d7b46a, #ad7b34);
+          border-radius: 999px;
+        }
+
+        .overviewContent {
+          display: grid;
+          grid-template-columns: 1fr 180px 150px;
+          gap: 20px;
+          align-items: center;
+        }
+
+        .moleculeArt {
+          height: 180px;
+          position: relative;
           border-radius: 20px;
-          background: #faf5ff;
+          background:
+            radial-gradient(circle at center, rgba(198, 164, 102, 0.2), transparent 48%),
+            linear-gradient(135deg, #fffdf8, #f6efe4);
+          overflow: hidden;
+        }
+
+        .mNode {
+          position: absolute;
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          background: radial-gradient(circle at 30% 28%, #fff, #d8c19b 48%, #a77a35);
+          box-shadow: 0 12px 24px rgba(98, 73, 39, 0.18);
+        }
+
+        .n1 { left: 58px; top: 48px; }
+        .n2 { left: 122px; top: 76px; width: 42px; height: 42px; }
+        .n3 { left: 202px; top: 42px; }
+        .n4 { left: 248px; top: 112px; width: 26px; height: 26px; }
+        .n5 { left: 88px; top: 130px; width: 25px; height: 25px; }
+
+        .bond {
+          position: absolute;
+          height: 3px;
+          background: rgba(152, 119, 68, 0.36);
+          transform-origin: left center;
+          border-radius: 99px;
+        }
+
+        .b1 { width: 70px; left: 88px; top: 69px; transform: rotate(24deg); }
+        .b2 { width: 72px; left: 158px; top: 90px; transform: rotate(-24deg); }
+        .b3 { width: 60px; left: 145px; top: 113px; transform: rotate(36deg); }
+        .b4 { width: 58px; left: 100px; top: 140px; transform: rotate(-50deg); }
+
+        .donut {
+          width: 170px;
+          height: 170px;
+          border-radius: 50%;
+          background:
+            conic-gradient(#caa568 0deg 154deg, #f2eadb 154deg 228deg, #d9c3a0 228deg 315deg, #f6efe4 315deg 360deg);
+          display: grid;
+          place-items: center;
+          box-shadow: inset 0 0 0 14px rgba(255,255,255,0.58);
+        }
+
+        .donutInner {
+          width: 104px;
+          height: 104px;
+          background: rgba(255,255,255,0.86);
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          text-align: center;
+          box-shadow: 0 12px 26px rgba(99, 72, 32, 0.09);
+        }
+
+        .donutInner span {
+          font-size: 10px;
+          color: #8f8679;
+        }
+
+        .donutInner strong {
+          font-size: 24px;
+          color: #4b4032;
+        }
+
+        .legend {
+          display: grid;
+          gap: 8px;
+        }
+
+        .legend p {
+          margin: 0;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          color: #6d6257;
+          font-size: 12px;
+        }
+
+        .legend i {
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          margin-right: 6px;
+        }
+
+        .legend .green { background: #58b783; }
+        .legend .gold { background: #c9a66e; }
+        .legend .soft { background: #e8d8bd; }
+        .legend .red { background: #e36c6c; }
+
+        .perfGrid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+
+        .infoBox {
+          min-height: 94px;
+          border: 1px solid rgba(166, 137, 90, 0.12);
+          border-radius: 17px;
+          background: rgba(255,255,255,0.56);
           padding: 13px;
         }
 
-        .method-list span {
-          width: 34px;
-          height: 34px;
+        .infoBox span {
+          color: #8f8679;
+          font-size: 12px;
+        }
+
+        .infoBox strong {
+          display: block;
+          margin-top: 8px;
+          color: #44382a;
+          font-size: 22px;
+          letter-spacing: -0.03em;
+        }
+
+        .infoBox small {
+          color: #37a168;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .reactorHero {
+          min-height: 252px;
+          display: grid;
+          grid-template-columns: 220px 1fr;
+          overflow: hidden;
+          position: relative;
+          background:
+            radial-gradient(circle at 80% 18%, rgba(255,255,255,0.42), transparent 26%),
+            linear-gradient(135deg, rgba(255,255,255,0.7), rgba(242, 231, 211, 0.78));
+        }
+
+        .reactorHero:before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background:
+            linear-gradient(130deg, transparent 0 45%, rgba(255,255,255,0.48) 45% 46%, transparent 46%),
+            repeating-radial-gradient(circle at 82% 24%, rgba(178,145,87,0.18) 0 2px, transparent 2px 30px);
+          opacity: 0.72;
+        }
+
+        .reactorInfo {
+          position: relative;
+          z-index: 1;
+          margin: 28px;
+          padding: 18px;
+          border-radius: 18px;
+          background: rgba(255,255,255,0.62);
+          border: 1px solid rgba(166, 137, 90, 0.14);
+          align-self: start;
+        }
+
+        .reactorInfo h3 {
+          margin: 0 0 12px;
+          color: #3b3024;
+        }
+
+        .reactorInfo p {
+          margin: 8px 0;
+          color: #6c6257;
+          font-size: 13px;
+        }
+
+        .reactorInfo span {
+          color: #2ea061;
+          font-weight: 800;
+        }
+
+        .reactorInfo button {
+          margin-top: 12px;
+          border: 1px solid rgba(174, 126, 48, 0.22);
+          background: #fbf5ea;
+          color: #a87634;
+          border-radius: 13px;
+          padding: 10px 13px;
+          cursor: pointer;
+          font-weight: 800;
+        }
+
+        .reactorVisual {
+          position: relative;
+          z-index: 1;
+          min-height: 250px;
           display: grid;
           place-items: center;
+        }
+
+        .ring {
+          position: absolute;
+          width: 470px;
+          height: 260px;
           border-radius: 50%;
-          color: white;
-          background: #8b5cf6;
-          font-weight: 900;
+          border: 22px solid rgba(199, 162, 99, 0.13);
+          transform: rotate(-14deg);
         }
 
-        .method-list p {
-          margin: 5px 0 0;
-          color: #432457;
-          line-height: 1.6;
+        .ring2 {
+          width: 360px;
+          height: 190px;
+          border-width: 14px;
+          opacity: 0.55;
         }
 
-        .ingredient-grid,
-        .property-grid {
+        .tank {
+          position: relative;
+          width: 150px;
+          height: 205px;
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 12px;
+          place-items: center;
         }
 
-        .ingredient-card,
-        .info-card {
-          border: 1px solid rgba(126, 34, 206, 0.12);
-          border-radius: 24px;
-          background: #fff;
-          padding: 16px;
+        .tankCap {
+          position: absolute;
+          top: 6px;
+          width: 72px;
+          height: 32px;
+          border-radius: 18px 18px 6px 6px;
+          background: linear-gradient(90deg, #e7ded0, #fff, #b9965e);
+          border: 1px solid rgba(117, 91, 52, 0.24);
+          z-index: 3;
         }
 
-        .ingredient-card span {
-          display: inline-flex;
-          border-radius: 999px;
-          background: #f3e8ff;
-          color: #7e22ce;
-          padding: 6px 10px;
-          font-size: 12px;
-          font-weight: 900;
+        .tankBody {
+          position: absolute;
+          top: 30px;
+          width: 115px;
+          height: 150px;
+          border-radius: 20px 20px 26px 26px;
+          background:
+            linear-gradient(90deg, rgba(255,255,255,0.7), rgba(255,255,255,0.12), rgba(107,84,51,0.12)),
+            linear-gradient(180deg, rgba(255,255,255,0.45), rgba(214, 187, 139, 0.32));
+          border: 2px solid rgba(140, 105, 54, 0.26);
+          box-shadow:
+            inset 0 0 22px rgba(255,255,255,0.7),
+            0 20px 45px rgba(98,73,39,0.16);
+          overflow: hidden;
         }
 
-        .ingredient-card h3 {
-          margin: 12px 0 2px;
+        .tankBody:before,
+        .tankBody:after {
+          content: "";
+          position: absolute;
+          top: -12px;
+          width: 13px;
+          height: 172px;
+          border-radius: 99px;
+          background: linear-gradient(180deg, #d5c3a6, #ffffff, #a17a42);
+          opacity: 0.8;
         }
 
-        .ingredient-card small {
-          display: block;
-          color: #7c6a8a;
-          margin-bottom: 10px;
+        .tankBody:before { left: 16px; }
+        .tankBody:after { right: 16px; }
+
+        .liquid {
+          position: absolute;
+          left: 7px;
+          right: 7px;
+          bottom: 0;
+          height: 58%;
+          border-radius: 50% 50% 20px 20px;
+          background:
+            radial-gradient(circle at 50% 10%, rgba(255,255,255,0.85), transparent 30%),
+            linear-gradient(180deg, rgba(88, 188, 148, 0.3), rgba(76, 160, 126, 0.55));
         }
 
-        .ingredient-card p {
-          color: #4b315f;
-          line-height: 1.6;
+        .tankBase {
+          position: absolute;
+          bottom: 9px;
+          width: 150px;
+          height: 28px;
+          border-radius: 50%;
+          background: linear-gradient(90deg, #c2a06d, #fff, #b48a4d);
+          opacity: 0.85;
         }
 
-        .note {
+        .deviceGrid {
+          display: grid;
+          grid-template-columns: repeat(6, minmax(0, 1fr));
+          gap: 11px;
+        }
+
+        .deviceCard {
+          min-height: 136px;
+          border: 1px solid rgba(166, 137, 90, 0.12);
+          background: rgba(255,255,255,0.56);
           border-radius: 18px;
-          background: #faf5ff;
           padding: 12px;
-          color: #4b315f;
-          line-height: 1.55;
+          text-align: center;
         }
 
-        .info-card span {
+        .deviceImage {
+          height: 56px;
+          display: grid;
+          place-items: center;
+          margin-bottom: 10px;
+          font-size: 28px;
+          color: #a67b37;
+          border-radius: 14px;
+          background: linear-gradient(145deg, #fffdf7, #f3ebde);
+        }
+
+        .deviceCard strong {
           display: block;
-          margin-bottom: 8px;
-          color: #8b5cf6;
           font-size: 12px;
-          font-weight: 900;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
+          color: #44382d;
         }
 
-        .info-card p {
-          margin: 0;
-          color: #432457;
-          line-height: 1.6;
+        .deviceCard small {
+          display: block;
+          margin-top: 4px;
+          color: #8a8175;
+          font-size: 10px;
         }
 
-        .warning-box {
-          margin-top: 16px;
-          border: 1px solid rgba(245, 158, 11, 0.2);
-          border-radius: 24px;
-          background: #fffbeb;
-          padding: 16px;
-          color: #7c4a03;
-        }
-
-        .warning-box p {
+        .deviceCard p {
           margin: 8px 0 0;
-          line-height: 1.6;
+          font-size: 11px;
+          font-weight: 800;
         }
 
-        @media (max-width: 1050px) {
-          .workspace,
-          .hero {
+        .ok { color: #32a165; }
+        .wait { color: #df9a25; }
+
+        .moduleGrid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+
+        .moduleItem {
+          min-height: 68px;
+          border: 1px solid rgba(166, 137, 90, 0.12);
+          background: rgba(255,255,255,0.54);
+          border-radius: 15px;
+          padding: 12px;
+          display: grid;
+          grid-template-columns: 36px 1fr;
+          column-gap: 10px;
+          align-items: center;
+        }
+
+        .moduleItem div {
+          grid-row: span 2;
+          width: 36px;
+          height: 36px;
+          border-radius: 13px;
+          display: grid;
+          place-items: center;
+          color: #a67b37;
+          background: #f6eedf;
+        }
+
+        .moduleItem strong {
+          font-size: 13px;
+          color: #40372e;
+        }
+
+        .moduleItem span {
+          font-size: 11px;
+          color: #8b8277;
+        }
+
+        .alertList {
+          display: grid;
+          gap: 10px;
+        }
+
+        .alertItem {
+          display: grid;
+          grid-template-columns: 34px 1fr 70px;
+          gap: 10px;
+          align-items: center;
+          padding: 10px;
+          border-radius: 15px;
+          border: 1px solid rgba(166, 137, 90, 0.1);
+          background: rgba(255,255,255,0.5);
+        }
+
+        .alertIcon {
+          width: 31px;
+          height: 31px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          font-size: 13px;
+          font-weight: 900;
+        }
+
+        .alertItem.warning .alertIcon {
+          background: #fff0d5;
+          color: #c98013;
+        }
+
+        .alertItem.info .alertIcon {
+          background: #e7edff;
+          color: #4b65b2;
+        }
+
+        .alertItem.danger .alertIcon {
+          background: #fff0ef;
+          color: #d54d46;
+        }
+
+        .alertItem.success .alertIcon {
+          background: #e8f8ee;
+          color: #2c9d5d;
+        }
+
+        .alertItem strong {
+          display: block;
+          color: #51463b;
+          font-size: 12px;
+        }
+
+        .alertItem p {
+          margin: 3px 0 0;
+          color: #8b8277;
+          font-size: 10px;
+        }
+
+        .alertItem > span {
+          color: #8f8679;
+          font-size: 11px;
+          text-align: right;
+        }
+
+        .aiCard {
+          background:
+            radial-gradient(circle at top right, rgba(210, 174, 106, 0.16), transparent 36%),
+            rgba(255, 255, 255, 0.72);
+        }
+
+        .beta {
+          border-radius: 999px;
+          background: #f3e7d1;
+          color: #9a7137;
+          padding: 5px 8px;
+          font-size: 10px;
+          font-weight: 900;
+        }
+
+        .aiText {
+          margin: 0 0 14px;
+          color: #6c6257;
+          line-height: 1.6;
+          font-style: italic;
+        }
+
+        .quickActions {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+
+        .quickActions button {
+          border: 1px solid rgba(166, 137, 90, 0.13);
+          background: rgba(255,255,255,0.56);
+          color: #816440;
+          border-radius: 12px;
+          padding: 9px 8px;
+          cursor: pointer;
+          font-size: 11px;
+          font-weight: 700;
+        }
+
+        .chatInput {
+          height: 44px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          border: 1px solid rgba(166, 137, 90, 0.18);
+          background: rgba(255,255,255,0.68);
+          border-radius: 14px;
+          padding: 0 6px 0 12px;
+        }
+
+        .chatInput input {
+          width: 100%;
+          border: 0;
+          outline: 0;
+          background: transparent;
+          color: #4d443b;
+        }
+
+        .chatInput button {
+          width: 32px;
+          height: 32px;
+          border: 0;
+          border-radius: 10px;
+          background: linear-gradient(135deg, #c7a263, #dcb977);
+          color: white;
+          cursor: pointer;
+        }
+
+        @media (max-width: 1280px) {
+          .page {
+            grid-template-columns: 250px 1fr;
+          }
+
+          .dashboardGrid,
+          .rightBottomGrid,
+          .bottomGrid {
             grid-template-columns: 1fr;
           }
 
-          .hero-card {
-            min-height: auto;
+          .deviceGrid {
+            grid-template-columns: repeat(3, 1fr);
           }
         }
 
-        @media (max-width: 720px) {
-          .incilab-page {
-            padding: 16px;
+        @media (max-width: 900px) {
+          .page {
+            grid-template-columns: 1fr;
           }
 
-          .topbar,
-          .section-head,
-          .formula-header {
+          .sidebar {
+            min-height: auto;
+          }
+
+          .stats,
+          .topGrid,
+          .middleGrid,
+          .overviewContent {
+            grid-template-columns: 1fr;
+          }
+
+          .sectorList,
+          .deviceGrid,
+          .moduleGrid,
+          .quickActions {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .header {
             flex-direction: column;
           }
 
-          .form-row,
-          .button-row,
-          .ingredient-grid,
-          .property-grid {
-            grid-template-columns: 1fr;
+          .search {
+            width: 100%;
           }
 
-          h1 {
-            font-size: 42px;
-          }
-        }
-
-        @media print {
-          body {
-            background: white;
+          .headerActions {
+            width: 100%;
           }
 
-          .incilab-page {
-            padding: 0;
-          }
-
-          .no-print,
-          .topbar,
-          .hero,
-          .left-column,
-          .result-card,
-          .tabs {
-            display: none !important;
-          }
-
-          .workspace {
-            display: block;
-          }
-
-          .formula-card {
-            box-shadow: none;
-            border: 0;
-            padding: 0;
-          }
-
-          .phase-box,
-          .ingredient-card,
-          .info-card,
-          .claim-box,
-          .warning-box,
-          .ph-box {
-            break-inside: avoid;
-            box-shadow: none;
-          }
-
-          table {
-            min-width: 0;
-          }
-
-          th,
-          td {
-            font-size: 10px;
-            padding: 7px;
+          .main {
+            padding: 18px;
           }
         }
       `}</style>
@@ -1582,11 +1715,20 @@ export default function Page() {
   );
 }
 
-function InfoCard({ title, value }: { title: string; value: string }) {
+function InfoBox({
+  title,
+  value,
+  sub,
+}: {
+  title: string;
+  value: string;
+  sub: string;
+}) {
   return (
-    <div className="info-card">
+    <div className="infoBox">
       <span>{title}</span>
-      <p>{value}</p>
+      <strong>{value}</strong>
+      <small>{sub}</small>
     </div>
   );
 }
