@@ -432,6 +432,11 @@ function sanitizeVisibleAnswer(text: string) {
     .replace(/pdf tarandi/gi, "")
     .replace(/titck endpoint'i calisti/gi, "")
     .replace(/titck endpoint’i calisti/gi, "")
+    .replace(/api bagli degilse[\s\S]*$/gi, "")
+    .replace(/API bağlı değilse[\s\S]*$/g, "")
+    .replace(/Daha güçlü cevap için[\s\S]*$/g, "")
+    .replace(/Gemini\/?OpenAI[\s\S]*$/gi, "")
+    .replace(/yedek mod[\s\S]*$/gi, "")
     .replace(/```json[\s\S]*?```/gi, "")
     .replace(/```[\s\S]*?```/gi, "")
     .trim();
@@ -471,6 +476,18 @@ function isWeakOrLeakyAnswer(answer: string) {
     "rawresearchdata",
     "system prompt",
     "model fallback",
+    "api bagli degilse",
+    "daha guclu cevap icin",
+    "gemini",
+    "openai",
+    "yedek mod",
+    "genel yaklasim",
+    "urun tipini belirlerim",
+    "hedef etkiyi cikaririm",
+    "gerekli hammaddeleri secerim",
+    "kullanim oranlarini oneririm",
+    "faz faz uretim yontemini yazarim",
+    "sorunu aldim bunu kimya",
   ];
 
   return weakPatterns.some((pattern) => q.includes(pattern));
@@ -841,13 +858,13 @@ export default function Page() {
           sector: currentSector,
           formula: currentFormulaTitle,
           market: currentMarket,
-          mode: "incilab-v2",
+          mode: "incilab-v2.1",
           systemPrompt: brainPrompt,
           prompt: brainPrompt,
           message: brainPrompt,
           internalOptions: {
             assistant: "InciLab",
-            brainVersion: "2.0",
+            brainVersion: "2.1",
             officialSourceMode: officialMode,
             hideTechnicalDetailsFromUser: true,
             userFacingOnly: true,
@@ -882,10 +899,10 @@ export default function Page() {
             message: brainPrompt,
             prompt: brainPrompt,
             question: text,
-            mode: "incilab-v2",
+            mode: "incilab-v2.1",
             internalOptions: {
               assistant: "InciLab",
-              brainVersion: "2.0",
+              brainVersion: "2.1",
               officialSourceMode: officialMode,
               hideTechnicalDetailsFromUser: true,
               userFacingOnly: true,
