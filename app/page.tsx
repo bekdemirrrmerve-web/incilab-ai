@@ -1113,9 +1113,6 @@ export default function Page() {
             "Analiz Sonuçları",
             "Trend Bileşenler",
             "Endüstriyel Sektörler",
-            "Kütüphane",
-            "Favoriler",
-            "Ayarlar",
           ].map((item) => (
             <button
               key={item}
@@ -1129,29 +1126,29 @@ export default function Page() {
         </nav>
 
         <div className="usageCard">
-          <h3>Günlük Kullanım</h3>
-          <p>24 / 100 sorgu</p>
+          <h3>Güvenli Kullanım</h3>
+          <p>InciLab eğitim, ön değerlendirme ve Ar-Ge yönlendirmesi içindir.</p>
           <div className="usageTrack">
             <span />
           </div>
           <div className="usageLinks">
-            <button onClick={() => addMessage("assistant", "Pro Plan bilgisi açıldı. Daha fazla sorgu, PDF çıktısı ve gelişmiş analiz modları eklenebilir.")}>
-              Pro Plan
+            <button onClick={() => addMessage("assistant", "Not: Ticari üretim, piyasaya arz, etiket ve mevzuat uygunluğu için güncel resmi kaynaklar, güvenlilik değerlendirmesi ve laboratuvar testleri ayrıca kontrol edilmelidir.")}>
+              Kullanım Notu
             </button>
-            <button onClick={() => addMessage("assistant", "Plan yükseltme ekranı için ödeme/üyelik modülü bağlanabilir.")}>
-              Planı Yükselt →
+            <button onClick={() => addMessage("assistant", "Formülasyonlarda pH, stabilite, mikrobiyoloji, challenge test, ambalaj uyumu ve mevzuat kontrolü atlanmamalıdır.")}>
+              Güvenlik →
             </button>
           </div>
         </div>
 
         <div className="profileCard">
-          <div className="avatar">MB</div>
+          <div className="avatar">IL</div>
           <div>
-            <strong>Merve Bekdemir</strong>
-            <span>InciLab Admin</span>
+            <strong>InciLab Kullanıcısı</strong>
+            <span>Formülasyon & INCI Asistanı</span>
           </div>
-          <button onClick={() => addMessage("assistant", "Profil menüsü açıldı. Kullanıcı bilgileri, şirket adı ve çalışma alanı burada düzenlenebilir.")}>
-            ⌄
+          <button onClick={() => addMessage("assistant", "InciLab; kozmetik, kimya, formülasyon, INCI ve mevzuat ön değerlendirmesi için hazırlanmış bir Ar-Ge asistanıdır.")}>
+            ⓘ
           </button>
         </div>
 
@@ -1167,15 +1164,15 @@ export default function Page() {
       <section className="main">
         <header className="topBar no-print">
           <div>
-            <h1>Merhaba, Merve 👋</h1>
-            <p>InciLab AI Asistan; formülasyon, analiz, parfüm, INCI ve mevzuat araştırmalarında yanında.</p>
+            <h1>Merhaba 👋</h1>
+            <p>InciLab AI Asistan; formülasyon, analiz, parfüm, INCI ve mevzuat ön değerlendirmelerinde yanında.</p>
           </div>
 
           <div className="topActions">
-            <button onClick={() => addMessage("assistant", "Bildirimler: Formül raporu, mevzuat uyarısı ve trend bileşen güncellemeleri burada listelenebilir.")}>
-              🔔
+            <button onClick={() => addMessage("assistant", "Güvenlik notu: Ticari ürün geliştirmede stabilite, mikrobiyoloji, challenge test, ambalaj uyumu ve güncel mevzuat kontrolü ayrıca yapılmalıdır.")}>
+              🛡
             </button>
-            <button onClick={() => addMessage("assistant", "Parlak pastel laboratuvar teması aktif. Renkler açık pembe, bebe mavisi, lila, açık sarı ve en açık yeşil tonlarında.")}>
+            <button onClick={() => addMessage("assistant", "InciLab; formülasyon mantığı, INCI yorumu, ürün güvenliği ve mevzuat farkındalığı için destek verir.")}>
               ✦
             </button>
             <button onClick={() => addMessage("assistant", "Yardım: Soru kutusuna doğal şekilde yaz. İnciLab niyetini anlamaya çalışır; tek kalıba bağlı değildir.")}>
@@ -1199,7 +1196,7 @@ export default function Page() {
               <div className="orb" />
               <div className="heroContent">
                 <h2>Bugün nasıl yardımcı olabilirim?</h2>
-                <p>Soruyu dağınık yazsan bile niyeti anlayıp detaylı cevap üretmeye çalışırım.</p>
+                <p>Soruyu dağınık yazsan bile niyeti anlayıp kimya, formülasyon ve güvenlik açısından yorumlarım.</p>
 
                 <div className="mainInput">
                   <input
@@ -1227,6 +1224,10 @@ export default function Page() {
                     </button>
                   ))}
                 </div>
+
+                <p className="heroNote">
+                  Eğitim ve ön değerlendirme amaçlıdır; piyasaya arz öncesi güncel mevzuat, güvenlilik değerlendirmesi ve laboratuvar testleri gerekir.
+                </p>
               </div>
             </section>
 
@@ -1945,6 +1946,13 @@ export default function Page() {
         }
 
         .quickPills { margin-top: 18px; }
+
+        .heroNote {
+          margin: 14px 0 0 !important;
+          color: #73809d !important;
+          font-size: 12px;
+          line-height: 1.45;
+        }
 
         .quickPills button,
         .amountButtons button,
