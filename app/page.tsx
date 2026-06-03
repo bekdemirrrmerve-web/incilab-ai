@@ -339,23 +339,321 @@ function normalizeText(text: string) {
     .trim();
 }
 
-function localClientFallback(question: string) {
+function hasOfficialSourceIntent(question: string) {
   const q = normalizeText(question);
 
-  if (
+  const keywords = [
+    "mevzuat",
+    "yonetmelik",
+    "resmi gazete",
+    "titck",
+    "uts",
+    "urun bilgi dosyasi",
+    "guvenlilik degerlendirmesi",
+    "etiket",
+    "iddia",
+    "yasakli",
+    "kisitli",
+    "alerjen",
+    "ifra",
+    "cosing",
+    "sccs",
+    "uv filtresi",
+    "koruyucu limiti",
+    "renklendirici",
+    "nanomateryal",
+    "piyasaya arz",
+    "cpnp",
+    "mocra",
+    "regulasyon",
+    "uygun mu",
+    "uygunluk",
+    "limit",
+    "sinir",
+  ];
+
+  return keywords.some((keyword) => q.includes(keyword));
+}
+
+function hasDangerousChemistryIntent(question: string) {
+  const q = normalizeText(question);
+
+  const riskWords = [
+    "kostik",
+    "naoh",
+    "sodyum hidroksit",
+    "potasyum hidroksit",
+    "koh",
+    "hidroklorik asit",
+    "sulfurik asit",
+    "nitrik asit",
+    "peroksit",
+    "oksitleyici",
+    "yanici",
+    "patlayici",
+    "civa",
+    "arsenik",
+    "evde spf",
+    "gunes kremi spf hesapla",
+    "bebek urunu",
+    "goz ici",
+    "acik yara",
+    "mukoza",
+  ];
+
+  return riskWords.some((keyword) => q.includes(keyword));
+}
+
+function hasPerfumeIntent(question: string) {
+  const q = normalizeText(question);
+
+  return (
     q.includes("parfum") ||
     q.includes("parfüm") ||
     q.includes("esans") ||
     q.includes("koku") ||
-    q.includes("fresh")
+    q.includes("fresh") ||
+    q.includes("nota")
+  );
+}
+
+function sanitizeVisibleAnswer(text: string) {
+  return String(text || "")
+    .replace(/officialSourceMode\s*[:=]\s*(true|false)/gi, "")
+    .replace(/checkedSources\s*[:=].*/gi, "")
+    .replace(/rawResearchData\s*[:=].*/gi, "")
+    .replace(/confidence\s*[:=].*/gi, "")
+    .replace(/debug\s*[:=].*/gi, "")
+    .replace(/endpoint\s*[:=].*/gi, "")
+    .replace(/api\s*response\s*[:=].*/gi, "")
+    .replace(/system prompt/gi, "")
+    .replace(/model fallback/gi, "")
+    .replace(/kaynak katmani aktif/gi, "")
+    .replace(/pdf tarandi/gi, "")
+    .replace(/titck endpoint'i calisti/gi, "")
+    .replace(/titck endpoint’i calisti/gi, "")
+    .replace(/```json[\s\S]*?```/gi, "")
+    .replace(/```[\s\S]*?```/gi, "")
+    .trim();
+}
+
+function extractAiAnswer(data: any) {
+  return (
+    data?.answer ||
+    data?.reply ||
+    data?.text ||
+    data?.result ||
+    data?.content ||
+    data?.message ||
+    data?.output ||
+    data?.response ||
+    data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+    ""
+  );
+}
+
+function isWeakOrLeakyAnswer(answer: string) {
+  const q = normalizeText(answer);
+
+  if (!q || q.length < 35) return true;
+
+  const weakPatterns = [
+    "sorunu biraz daha detaylandir",
+    "daha net cevaplarim",
+    "urun tipi veya hedef iddia",
+    "lutfen daha fazla bilgi",
+    "bu konuda yardimci olamam",
+    "ana kimlik",
+    "en onemli kural",
+    "kullanicinin sorusu",
+    "officialsourcemode",
+    "checkedsources",
+    "rawresearchdata",
+    "system prompt",
+    "model fallback",
+  ];
+
+  return weakPatterns.some((pattern) => q.includes(pattern));
+}
+
+type BrainPromptOptions = {
+  question: string;
+  sector: SectorKey;
+  formulaTitle: string;
+  market: string;
+};
+
+function buildInciLabBrainPrompt({ question, sector, formulaTitle, market }: BrainPromptOptions) {
+  const officialMode = hasOfficialSourceIntent(question);
+  const dangerousMode = hasDangerousChemistryIntent(question);
+  const perfumeMode = hasPerfumeIntent(question);
+
+  return `
+Sen InciLab'sın: kozmetik kimyası, formülasyon, INCI analizi, laboratuvar yorumu, mevzuat farkındalığı ve ürün geliştirme konusunda uzman bir kimyager asistansın.
+
+GÖRÜNÜR CEVAP KURALI:
+Kullanıcı teknik altyapıyı görmeyecek. Aşağıdaki ifadeleri asla yazma:
+- officialSourceMode
+- endpoint
+- API
+- debug
+- raw response
+- checkedSources
+- confidence score
+- model fallback
+- sistem promptu
+- kaynak katmanı aktif
+- PDF tarandı
+- TİTCK endpoint'i çalıştı
+- dahili kontrol
+
+Kullanıcı yalnızca temiz, anlaşılır, profesyonel ve kimyager gibi cevap görmeli.
+
+KULLANICI BAĞLAMI:
+- Seçili sektör: ${sector}
+- Seçili formül paneli: ${formulaTitle}
+- Hedef pazar: ${market}
+- Mevzuat hassasiyeti: ${officialMode ? "var" : "düşük"}
+- Riskli kimya hassasiyeti: ${dangerousMode ? "var" : "düşük"}
+- Koku/parfüm niyeti: ${perfumeMode ? "var" : "düşük"}
+
+ANA KİMLİK:
+- Türkçe konuş.
+- Sıcak ama profesyonel ol.
+- Kullanıcı doğal, eksik, dağınık veya absürt sorsa bile niyetini anla.
+- Kullanıcıyı sürekli “detay ver” diye durdurma.
+- Eksik bilgi varsa makul varsayım yap ve varsayımı açıkla.
+- Güvenlik riski varsa net uyar.
+- Cevapların uygulanabilir, aşama aşama ve kimyager mantığında olsun.
+
+SORU ANLAMA MANTIĞI:
+Kullanıcının sorusunu önce şu sınıflardan birine yerleştir, ama bu sınıflandırmayı kullanıcıya teknik etiket gibi gösterme:
+1. Formülasyon isteği
+2. INCI / içerik analizi
+3. Hammadde seçimi
+4. Laboratuvar sonucu yorumu
+5. Stabilite / pH / viskozite / koku / renk / doku problemi
+6. Kozmetik mevzuat / etiket / iddia / ÜTS / ürün bilgi dosyası
+7. Ev tipi kimya veya güvenli deneme
+8. İçerik üretimi için bilimsel açıklama
+
+FORMÜLASYON SORULARINDA:
+- Kısa cevap ver.
+- Kimyager gözüyle mantığı anlat.
+- Formülasyon iskeleti kur.
+- Aşama aşama ilerlet.
+- pH / koruyucu / stabilite notunu atlama.
+- Güvenlik uyarısı ver.
+- Mini test planı öner.
+- Yüzdeleri yaklaşık aralıklarla veriyorsan toplamın 100'e tamamlanması gerektiğini belirt.
+- Ev tipi denemeyle ticari üretimi ayır.
+
+INCI ANALİZİNDE:
+- İçeriği gruplara ayır.
+- Her grubun görevini açıkla.
+- Hassasiyet, alerjen, komedojenite veya irritasyon riskini belirt.
+- Pazarlama iddiası ile gerçek formül mantığını ayır.
+
+KOKU / PARFÜM SORULARINDA:
+- Üst nota, orta nota, dip nota mantığını anlat.
+- Saf esansın cilde direkt uygulanmayacağını belirt.
+- Alkol, taşıyıcı yağ veya solubilizer ihtiyacını açıkla.
+- IFRA ve alerjen limitleri konusunda uyar.
+- Küçük deneme ve bekletme/maceration sürecini anlat.
+- Kullanıcı “esansı sıfırdan yapacağım” derse bunu saf aroma kimyasal sentezi değil, güvenli parfüm akordu kurma olarak yorumla.
+
+EVDE KİMYA SORULARINDA:
+- Güvenli ev tipi gözlem ile profesyonel üretimi ayır.
+- Kostik, güçlü asit, oksitleyici, yüksek alkol, uçucu solvent, SPF, bebek ürünü, göz çevresi veya açık yara konularında çok dikkatli ol.
+- Riskli tarif verme; güvenli alternatif öner.
+
+MEVZUAT SORULARINDA:
+- Kesin uygunluk garantisi verme.
+- Kullanıcıya teknik kaynak tarama sürecini anlatma.
+- Eski PDF bilgisine saplanma.
+- Yönetmelik değişebileceği için kesin hüküm vermeden kontrol başlıklarını anlat.
+- Türkiye için TİTCK, Resmî Gazete, Mevzuat.gov.tr ve ÜTS başlıklarını; AB için EU 1223/2009, CosIng ve SCCS başlıklarını dikkate al.
+- “Piyasaya arz öncesi güncel resmi kaynak kontrolü gerekir” diyebilirsin.
+- ÜTS, ürün bilgi dosyası, güvenlilik değerlendirmesi, etiket, iddia, alerjen, yasaklı/kısıtlı madde kontrollerini sade şekilde belirt.
+
+TEHLİKELİ TALEPLERDE:
+Şunlarda doğrudan tarif verme:
+- Patlayıcı, toksik, yasa dışı veya zararlı kimyasal üretimi
+- Cildi yakabilecek yüksek asit/alkali uygulamaları
+- Evde SPF garanti etme
+- Bebek ürünü için koruyucusuz/steril olmayan formül
+- Tedavi/ilaç iddiası
+- Göz içine, mukozaya veya açık yaraya uygulanacak ürün
+Böyle durumda neden riskli olduğunu açıkla, güvenli alternatif ver ve kullanıcıyı boş bırakma.
+
+CEVAP FORMATI:
+Sorunun tipine göre en uygun formatı seç. Genelde şu yapı iyi çalışır:
+
+Kısa cevap:
+...
+
+Kimyager gözüyle:
+...
+
+Nasıl ilerlenir?
+...
+
+Dikkat:
+...
+
+Mini öneri:
+...
+
+Kullanıcının sorusu:
+${question}
+`;
+}
+
+function localClientFallback(question: string) {
+  const q = normalizeText(question);
+  const officialMode = hasOfficialSourceIntent(question);
+  const dangerousMode = hasDangerousChemistryIntent(question);
+
+  if (dangerousMode) {
+    return [
+      "Kısa cevap: Bu soru güvenlik açısından dikkat istiyor; riskli kimyasallarda doğrudan tarif vermem doğru olmaz.",
+      "Kimyager gözüyle: Kostik, güçlü asit/alkali, oksitleyici, yüksek alkol, göz çevresi, açık yara, bebek ürünü veya SPF gibi konular ev tipi denemede ciddi iritasyon, yanık, toksisite ya da yanlış güven hissi oluşturabilir.",
+      "Nasıl ilerlenir? Önce ürünün kullanım alanı, hedef pH, çözücü sistemi, koruyucu ihtiyacı ve güvenli konsantrasyon aralığı belirlenmeli. Ticari ürün olacaksa güvenlilik değerlendirmesi, stabilite ve mikrobiyoloji testleri olmadan piyasaya sunulmamalı.",
+      "Mini öneri: Bana ürün tipini ve hedef kullanım bölgesini yaz; ben sana riskli tarife girmeden güvenli formülasyon mantığını kurayım.",
+    ].join("\n\n");
+  }
+
+  if (hasPerfumeIntent(question)) {
+    return [
+      "Kısa cevap: Fresh kokulu parfümde önce esans sentezlemekten çok güvenli bir koku akordu kurarsın. Yani üst, orta ve dip notaları dengelersin; sonra bu konsantreyi alkol veya uygun taşıyıcı sistemle seyreltirsin.",
+      "Kimyager gözüyle: Fresh etki genelde narenciye/yeşil üst notalarla açılır, beyaz çiçek veya çay notalarıyla gövde kazanır, musk/odunsu dip notalarla kalıcılık alır. Saf esans cilde direkt sürülmez; IFRA, alerjen ve dermal limit mantığı mutlaka dikkate alınır.",
+      "Nasıl ilerlenir? 10 g deneme akordu için yaklaşık iskelet şöyle olabilir: %45 üst nota, %35 orta nota, %20 dip nota. Örnek: bergamot-limon-greyfurt/yeşil nota üst; neroli-beyaz çay-frezya orta; temiz musk-sedir-amber dip. Esans akordu koyu cam şişede 24-48 saat dinlendirilir.",
+      "EDP denemesi: Başlangıçta yaklaşık %15-18 esans akordu, %80-83 parfüm alkolü, %1-2 saf su veya uygun çözücü destek denenebilir. Karışım 2-4 hafta dinlendirilir; bulanıklık olursa filtrasyon ve çözücü uyumu kontrol edilir.",
+      "Dikkat: Alkol yanıcıdır; açık alevden uzak çalış. Narenciye yağlarında fototoksisite ve alerjen beyanı olabilir. Ticari ürün için IFRA uygunluğu, alerjen etiketi, stabilite ve mevzuat kontrolü gerekir.",
+    ].join("\n\n");
+  }
+
+  if (
+    q.includes("gliserin") ||
+    q.includes("glycerin") ||
+    q.includes("aloe") ||
+    q.includes("krem olur mu")
   ) {
     return [
-      "Fresh kokulu parfüm için önce esans akordu kurulur. Mantık üst nota, orta nota ve dip nota şeklindedir.",
-      "Başlangıç için fresh esans oranı: %45 üst nota, %35 orta nota, %20 dip nota olabilir.",
-      "10 g fresh esans örneği: 2 g bergamot, 1 g limon, 0.8 g greyfurt, 0.7 g yeşil nota, 1.5 g neroli, 1 g beyaz çay, 1 g frezya, 0.8 g temiz musk, 0.7 g sedir, 0.5 g amber.",
-      "Bu esans cam şişede 24-48 saat dinlendirilir. Sonra EDP için yaklaşık %18 esans, %80 alkol, %2 saf su/çözücü destek kullanılabilir.",
-      "Karışım 2-4 hafta koyu renk cam şişede dinlendirilir, sonra gerekirse filtrelenir. Alkol yanıcıdır; IFRA ve alerjen güvenliği kontrol edilmelidir.",
-    ].join(" ");
+      "Kısa cevap: Gliserin ve aloe karışımı tek başına krem olmaz; daha çok sulu/humektan bir jel veya serum mantığına yaklaşır.",
+      "Kimyager gözüyle: Krem için su fazı + yağ fazı + emülgatör + kıvam sistemi + koruyucu gerekir. Sadece gliserin/aloe kullanırsan yağ fazı ve emülsiyon yapısı olmadığı için klasik krem dokusu oluşmaz.",
+      "Nasıl ilerlenir? Jel istiyorsan su/aloe bazı, %2-5 gliserin, uygun jel yapıcı ve koruyucu sistemi düşünülür. Krem istiyorsan ayrıca hafif yağ, emülgatör ve ısıtmalı emülsiyon prosesi gerekir.",
+      "Dikkat: Aloe gibi sulu hammaddelerde mikrobiyal risk vardır; koruyucusuz ev karışımı uzun süre saklanmaz.",
+    ].join("\n\n");
+  }
+
+  if (q.includes("limon") && (q.includes("leke") || q.includes("serum") || q.includes("cilt"))) {
+    return [
+      "Kısa cevap: Limonla leke açıcı serum yapmanı önermem.",
+      "Kimyager gözüyle: Limon suyu kontrolsüz düşük pH, iritasyon ve güneşle hassasiyet riski taşır. Ciltte leke hedefleniyorsa daha güvenli mantık niasinamid, C vitamini türevleri, azelaik asit türevleri ve düzenli SPF üzerinden kurulur.",
+      "Nasıl ilerlenir? Ev tipi limon uygulaması yerine pH kontrollü, koruyuculu ve stabilitesi test edilmiş bir serum formülü gerekir.",
+      "Dikkat: Leke ürünlerinde SPF desteği olmadan sonuç beklemek doğru değildir; hassas ciltte aktifler düşük oranla başlanmalıdır.",
+    ].join("\n\n");
   }
 
   if (
@@ -364,10 +662,27 @@ function localClientFallback(question: string) {
     q.includes("niacinamide") ||
     q.includes("b3")
   ) {
-    return "Niasinamid kozmetik formüllerde genelde %2-5 aralığında kullanılır. Hassas cilt ürünlerinde %2-4 daha konforlu olur. Bazı serumlarda %10 seviyesine kadar çıkılabilir ama pH, stabilite, çözünürlük ve tolerans testi gerekir.";
+    return [
+      "Kısa cevap: Niasinamid kozmetik formüllerde çoğunlukla %2-5 aralığında mantıklı ve konforlu çalışır.",
+      "Kimyager gözüyle: Bariyer hissi, ton eşitsizliği görünümü ve sebum dengesi için kullanılır. Hassas cilt ürünlerinde %2-4 daha nazik bir aralıktır; %10 gibi yüksek oranlar bazı ciltlerde kızarma, batma veya pütür yapabilir.",
+      "Formülasyon notu: Su fazında çözündürülür, pH genelde ciltle uyumlu aralıkta tutulur. Koruyucu sistem, çözünürlük, stabilite ve tolerans testi atlanmamalıdır.",
+    ].join("\n\n");
   }
 
-  return "Sorunu aldım. Bunu ürün tipi, hedef etki, hammadde seçimi, kullanım oranı, pH, stabilite, üretim yöntemi ve güvenlik açısından yorumlayabilirim.";
+  if (officialMode) {
+    return [
+      "Kısa cevap: Bu konu mevzuat açısından değerlendirilmelidir; tek cümleyle 'uygun' demek doğru olmaz.",
+      "Mevzuat gözüyle: Ürün tipi, kullanım alanı, içerik listesi, yasaklı/kısıtlı madde kontrolü, alerjen beyanı, etiket dili, iddia sınırı, ürün bilgi dosyası, güvenlilik değerlendirmesi ve hedef pazar ayrı ayrı kontrol edilmelidir.",
+      "Kimyager gözüyle: Formülasyon tarafında pH, koruyucu sistem, stabilite, mikrobiyoloji, ambalaj uyumu ve kullanım bölgesi güvenliği birlikte düşünülür.",
+      "Dikkat: Piyasaya arz öncesi güncel resmi kaynak kontrolü gerekir. Eski PDF veya eski kılavuz bilgisine dayanarak kesin uygunluk beyanı verilmemelidir.",
+    ].join("\n\n");
+  }
+
+  return [
+    "Kısa cevap: Sorunu aldım; bunu ürün tipi, hedef etki, hammadde seçimi, kullanım oranı, pH, stabilite, üretim yöntemi ve güvenlik açısından yorumlayabilirim.",
+    "Kimyager gözüyle: Önce ürünün ciltte kalan mı durulanan mı olduğunu, su/yağ fazı ihtiyacını, aktiflerin uyumluluğunu, koruyucu sistemini ve pH aralığını düşünmek gerekir.",
+    "Mini öneri: Ürün tipini veya yapmak istediğin etkiyi bir cümleyle yaz; ben sana formülasyon iskeletini ve üretim adımlarını çıkarayım.",
+  ].join("\n\n");
 }
 
 export default function Page() {
@@ -464,9 +779,20 @@ export default function Page() {
   }
 
   async function handleSend(question?: string) {
-    const text = question ?? mainQuestion;
+    const text = (question ?? mainQuestion).trim();
 
-    if (!text.trim()) return;
+    if (!text) return;
+
+    const currentFormulaTitle = formula.title;
+    const currentSector = selectedSector;
+    const currentMarket = market;
+    const officialMode = hasOfficialSourceIntent(text);
+    const brainPrompt = buildInciLabBrainPrompt({
+      question: text,
+      sector: currentSector,
+      formulaTitle: currentFormulaTitle,
+      market: currentMarket,
+    });
 
     setFormulaFromQuestion(text);
     addMessage("user", text);
@@ -482,6 +808,27 @@ export default function Page() {
       },
     ]);
 
+    const applyAssistantAnswer = (answer: string) => {
+      const visibleAnswer = sanitizeVisibleAnswer(answer);
+      const safeAnswer =
+        !visibleAnswer || isWeakOrLeakyAnswer(visibleAnswer)
+          ? localClientFallback(text)
+          : visibleAnswer;
+
+      setChatMessages((prev) => {
+        const withoutThinking = prev.filter((msg) => msg.id !== thinkingId);
+
+        return [
+          ...withoutThinking,
+          {
+            id: Date.now() + Math.random(),
+            sender: "assistant",
+            text: safeAnswer,
+          },
+        ];
+      });
+    };
+
     try {
       const res = await fetch("/api/incilab", {
         method: "POST",
@@ -490,45 +837,76 @@ export default function Page() {
         },
         body: JSON.stringify({
           question: text,
-          sector: selectedSector,
-          formula: formula.title,
-          market,
+          userQuestion: text,
+          sector: currentSector,
+          formula: currentFormulaTitle,
+          market: currentMarket,
+          mode: "incilab-v2",
+          systemPrompt: brainPrompt,
+          prompt: brainPrompt,
+          message: brainPrompt,
+          internalOptions: {
+            assistant: "InciLab",
+            brainVersion: "2.0",
+            officialSourceMode: officialMode,
+            hideTechnicalDetailsFromUser: true,
+            userFacingOnly: true,
+            preferredOfficialSources: [
+              "TITCK",
+              "Resmi Gazete",
+              "Mevzuat.gov.tr",
+              "CosIng",
+              "SCCS",
+              "EU 1223/2009",
+            ],
+          },
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
+      const rawAnswer = extractAiAnswer(data);
 
-      setChatMessages((prev) => {
-        const withoutThinking = prev.filter((msg) => msg.id !== thinkingId);
+      if (!res.ok || !rawAnswer || isWeakOrLeakyAnswer(rawAnswer)) {
+        throw new Error("InciLab cevabı zayıf veya teknik detay içeriyor.");
+      }
 
-        return [
-          ...withoutThinking,
-          {
-            id: Date.now() + Math.random(),
-            sender: "assistant",
-            text:
-              data?.answer ||
-              localClientFallback(text),
-          },
-        ];
-      });
+      applyAssistantAnswer(rawAnswer);
     } catch {
-      const fallback = localClientFallback(text);
-
-      setChatMessages((prev) => {
-        const withoutThinking = prev.filter((msg) => msg.id !== thinkingId);
-
-        return [
-          ...withoutThinking,
-          {
-            id: Date.now() + Math.random(),
-            sender: "assistant",
-            text: fallback,
+      try {
+        const geminiRes = await fetch("/api/gemini", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-        ];
-      });
+          body: JSON.stringify({
+            message: brainPrompt,
+            prompt: brainPrompt,
+            question: text,
+            mode: "incilab-v2",
+            internalOptions: {
+              assistant: "InciLab",
+              brainVersion: "2.0",
+              officialSourceMode: officialMode,
+              hideTechnicalDetailsFromUser: true,
+              userFacingOnly: true,
+            },
+          }),
+        });
+
+        const geminiData = await geminiRes.json().catch(() => null);
+        const geminiAnswer = extractAiAnswer(geminiData);
+
+        if (!geminiRes.ok || !geminiAnswer || isWeakOrLeakyAnswer(geminiAnswer)) {
+          throw new Error("Gemini cevabı alınamadı.");
+        }
+
+        applyAssistantAnswer(geminiAnswer);
+      } catch {
+        applyAssistantAnswer(localClientFallback(text));
+      }
     }
   }
+
 
   function handleAnalysis() {
     if (!analysisText.trim()) return;
